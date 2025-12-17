@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
 
-export function verifyToken(token: string) {
+export  async function verifyToken(token: string) {
   try {
+    console.log('token auth',token)
     return jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
   } catch {
     return null;
