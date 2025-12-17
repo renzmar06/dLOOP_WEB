@@ -44,12 +44,12 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       <div className="flex items-center justify-between p-2 border-b border-gray-200 min-h-[75px]">
         <div className="flex items-center space-x-2">
           <div className="w-10 h-9 bg-gradient-to-br from-teal-500 to-green-500 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">dloop</span>
+            <span className="text-white font-bold text-sm">dLoop</span>
           </div>
           {isOpen && (
             <div>
-              <h1 className="text-lg font-bold text-gray-900">dloop</h1>
-              <p className="text-xs text-gray-500"> Operations</p>
+              <h1 className="text-lg font-bold text-gray-900">dLoop</h1>
+              <p className="text-xs text-gray-500"> Partner Business</p>
             </div>
           )}
         </div>
