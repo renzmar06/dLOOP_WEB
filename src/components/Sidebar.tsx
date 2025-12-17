@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   Shield,
   Building,
+  Leaf,
 } from 'lucide-react';
 
 interface MenuItem {
@@ -14,11 +15,7 @@ interface MenuItem {
   href: string;
 }
 
-interface SidebarProps {
-  isOpen: boolean;
-}
-
-export default function Sidebar({ isOpen }: SidebarProps) {
+export default function Sidebar() {
   const menuItems: MenuItem[] = [
     {
       id: 'business-verification',
@@ -35,23 +32,17 @@ export default function Sidebar({ isOpen }: SidebarProps) {
   ];
 
   return (
-    <aside
-      className={`${
-        isOpen ? 'w-64 min-w-[16rem]' : 'w-20 min-w-[5rem]'
-      } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col h-full overflow-y-auto`}
-    >
+    <aside className="w-64 min-w-[16rem] bg-white border-r border-gray-200 flex flex-col h-full overflow-y-auto">
       {/* Logo */}
       <div className="flex items-center justify-between p-2 border-b border-gray-200 min-h-[75px]">
         <div className="flex items-center space-x-2">
           <div className="w-10 h-9 bg-gradient-to-br from-teal-500 to-green-500 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">dLoop</span>
+            <Leaf className="text-white" size={20} />
           </div>
-          {isOpen && (
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">dLoop</h1>
-              <p className="text-xs text-gray-500"> Partner Business</p>
-            </div>
-          )}
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">dLoop</h1>
+            <p className="text-xs text-gray-500"> Partner Business</p>
+          </div>
         </div>
       </div>
 
@@ -67,11 +58,9 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                     size={20}
                     className="transition-colors group-hover:text-gray-700"
                   />
-                  {isOpen && (
-                    <span className="ml-3 text-sm font-medium truncate whitespace-nowrap">
-                      {item.label}
-                    </span>
-                  )}
+                  <span className="ml-3 text-sm font-medium truncate whitespace-nowrap">
+                    {item.label}
+                  </span>
                 </div>
               </Link>
             </div>
