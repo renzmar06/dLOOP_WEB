@@ -6,6 +6,7 @@ import {
   Shield,
   Building,
   Leaf,
+  LayoutDashboard,
 } from 'lucide-react';
 
 interface MenuItem {
@@ -18,10 +19,10 @@ interface MenuItem {
 export default function Sidebar() {
   const menuItems: MenuItem[] = [
     {
-      id: 'business-verification',
-      icon: Shield,
-      label: 'Business Verification',
-      href: '/business-verification',
+      id: 'dashboard',
+      icon: LayoutDashboard,
+      label: 'Dashboard',
+      href: '/dashboard',
     },
     {
       id: 'business-profile',
@@ -29,6 +30,12 @@ export default function Sidebar() {
       label: 'Business Profile',
       href: '/business-profile',
     },
+    {
+      id: 'business-verification',
+      icon: Shield,
+      label: 'Business Verification',
+      href: '/business-verification',
+    }
   ];
 
   return (
