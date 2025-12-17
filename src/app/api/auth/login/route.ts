@@ -69,12 +69,22 @@ export async function POST(request: NextRequest) {
       process.env.JWT_SECRET || 'fallback-secret'
     );
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: 'Login successful',
       user: userData,
       token,
     }, { status: 200 });
+
+    // Set cookie
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/'
+    });
+
+    return response;
   } catch (error) {
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
