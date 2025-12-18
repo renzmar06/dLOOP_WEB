@@ -6,6 +6,13 @@ export interface BusinessHours {
   closed: boolean;
 }
 
+export interface BusinessHoursEntry {
+  day: string;
+  open: string;
+  close: string;
+  closed: boolean;
+}
+
 export interface IBusiness extends Document {
   userId: string;
   businessName: string;
@@ -20,22 +27,15 @@ export interface IBusiness extends Document {
   description: string;
   registeredId: string;
   legalName: string;
-  businessHours: {
-    monday: BusinessHours;
-    tuesday: BusinessHours;
-    wednesday: BusinessHours;
-    thursday: BusinessHours;
-    friday: BusinessHours;
-    saturday: BusinessHours;
-    sunday: BusinessHours;
-  };
+  businessHours: BusinessHoursEntry[];
   instagram: string;
   facebook: string;
   twitter: string;
   seoKeywords: string;
 }
 
-const businessHoursSchema = new Schema<BusinessHours>({
+const businessHoursEntrySchema = new Schema<BusinessHoursEntry>({
+  day: { type: String, required: true },
   open: { type: String, required: true },
   close: { type: String, required: true },
   closed: { type: Boolean, default: false }
@@ -45,30 +45,33 @@ const businessSchema = new Schema<IBusiness>(
   {
     userId: { type: String, required: true },
     businessName: { type: String, required: true, trim: true },
-    logo: { type: String, required: true },
+    logo: { type: String, required: false },
     phone: { type: String, required: true, trim: true },
     email: { type: String, required: true, lowercase: true },
-    website: { type: String, required: true },
-    googleLocation: { type: String, required: true },
-    serviceArea: { type: String, required: true },
-    businessType: { type: String, required: true },
-    industry: { type: String, required: true },
-    description: { type: String, required: true },
-    registeredId: { type: String, required: true },
-    legalName: { type: String, required: true },
+    website: { type: String, required: false },
+    googleLocation: { type: String, required: false },
+    serviceArea: { type: String, required: false },
+    businessType: { type: String, required: false },
+    industry: { type: String, required: false },
+    description: { type: String, required: false },
+    registeredId: { type: String, required: false },
+    legalName: { type: String, required: false },
     businessHours: {
-      monday: businessHoursSchema,
-      tuesday: businessHoursSchema,
-      wednesday: businessHoursSchema,
-      thursday: businessHoursSchema,
-      friday: businessHoursSchema,
-      saturday: businessHoursSchema,
-      sunday: businessHoursSchema
+      type: [businessHoursEntrySchema],
+      default: [
+        { day: "monday", open: "09:00", close: "17:00", closed: true },
+        { day: "tuesday", open: "09:00", close: "17:00", closed: true },
+        { day: "wednesday", open: "09:00", close: "17:00", closed: true },
+        { day: "thursday", open: "09:00", close: "17:00", closed: true },
+        { day: "friday", open: "09:00", close: "17:00", closed: true },
+        { day: "saturday", open: "09:00", close: "17:00", closed: true },
+        { day: "sunday", open: "09:00", close: "17:00", closed: true }
+      ]
     },
-    instagram: { type: String, required: true },
-    facebook: { type: String, required: true },
-    twitter: { type: String, required: true },
-    seoKeywords: { type: String, required: true }
+    instagram: { type: String, required: false },
+    facebook: { type: String, required: false },
+    twitter: { type: String, required: false },
+    seoKeywords: { type: String, required: false }
   },
   { timestamps: true }
 );

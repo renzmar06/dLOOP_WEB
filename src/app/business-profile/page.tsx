@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/redux/store';
+import { fetchBusinesses, createBusiness, updateBusiness, clearError } from '@/redux/slices/businessSlice';
+import toast, { Toaster } from 'react-hot-toast';
 import { Button } from "@/components/ui/button";
 import {
   User,
@@ -23,6 +27,7 @@ import {
   Save,
 } from "lucide-react";
 import PreviewModal from "@/components/PreviewModal";
+import Layout from "@/components/Layout";
 
 const Input = ({
   label,
@@ -161,32 +166,52 @@ const RichTextEditor = ({
 };
 
 export default function BusinessProfile() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { businesses, currentBusiness, loading, error } = useSelector((state: RootState) => state.business);
+  
   const [activeTab, setActiveTab] = useState("basic");
   const [showPreview, setShowPreview] = useState(false);
-  const [form, setForm] = useState({
-    // Business Name & Logo
+  const [showAddDay, setShowAddDay] = useState(false);
+  const [customDay, setCustomDay] = useState({
+    name: "",
+    open: "09:00",
+    close: "17:00",
+    closed: false
+  });
+  interface BusinessFormData {
+    _id?: string;
+    businessName: string;
+    logo: string;
+    phone: string;
+    email: string;
+    website: string;
+    googleLocation: string;
+    serviceArea: string;
+    businessType: string;
+    industry: string;
+    description: string;
+    registeredId: string;
+    legalName: string;
+    businessHours: Record<string, { open: string; close: string; closed: boolean }>;
+    instagram: string;
+    facebook: string;
+    twitter: string;
+    seoKeywords: string;
+  }
+
+  const [form, setForm] = useState<BusinessFormData>({
     businessName: "",
     logo: "",
-
-    // Contact Info
     phone: "",
     email: "",
     website: "",
-
-    // Physical Address / Service Area
     googleLocation: "",
     serviceArea: "",
-
-    // Business Details
     businessType: "",
     industry: "",
     description: "",
-
-    // Registered ID / Legal Info
     registeredId: "",
     legalName: "",
-
-    // Business Hours
     businessHours: {
       monday: { open: "09:00", close: "17:00", closed: true },
       tuesday: { open: "09:00", close: "17:00", closed: true },
@@ -196,21 +221,108 @@ export default function BusinessProfile() {
       saturday: { open: "09:00", close: "17:00", closed: true },
       sunday: { open: "09:00", close: "17:00", closed: true },
     },
-
-    // Social & SEO Enhancers
     instagram: "",
     facebook: "",
     twitter: "",
     seoKeywords: "",
   });
 
+  useEffect(() => {
+    dispatch(fetchBusinesses());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!currentBusiness && businesses.length === 0) return;
+    
+    const business = currentBusiness || businesses[0];
+    const businessHoursObj: Record<string, { open: string; close: string; closed: boolean }> = {
+      monday: { open: "09:00", close: "17:00", closed: true },
+      tuesday: { open: "09:00", close: "17:00", closed: true },
+      wednesday: { open: "09:00", close: "17:00", closed: true },
+      thursday: { open: "09:00", close: "17:00", closed: true },
+      friday: { open: "09:00", close: "17:00", closed: true },
+      saturday: { open: "09:00", close: "17:00", closed: true },
+      sunday: { open: "09:00", close: "17:00", closed: true },
+    };
+    
+    if (Array.isArray(business.businessHours)) {
+      business.businessHours.forEach((entry: { day: string; open: string; close: string; closed: boolean }) => {
+        businessHoursObj[entry.day] = {
+          open: entry.open,
+          close: entry.close,
+          closed: entry.closed
+        };
+      });
+    }
+    
+    setForm(prev => ({ ...prev, ...business, businessHours: businessHoursObj }));
+  }, [currentBusiness, businesses]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
+
   const onChange = (key: string, value: string | Record<string, unknown>) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  const validateForm = () => {
+    if (!form.businessName.trim()) {
+      toast.error('Business name is required');
+      return false;
+    }
+    if (!form.phone.trim()) {
+      toast.error('Phone number is required');
+      return false;
+    }
+    if (!form.email.trim()) {
+      toast.error('Email is required');
+      return false;
+    }
+    if (!/\S+@\S+\.\S+/.test(form.email)) {
+      toast.error('Please enter a valid email');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) return;
+    
+    try {
+      // Convert businessHours object to array format
+      const businessHoursArray = Object.entries(form.businessHours).map(([day, hours]) => ({
+        day,
+        open: hours.open,
+        close: hours.close,
+        closed: hours.closed
+      }));
+      
+      const businessData = {
+        ...form,
+        businessHours: businessHoursArray
+      };
+      
+      if (form._id) {
+        await dispatch(updateBusiness({ id: form._id, businessData: businessData as any })).unwrap();
+        toast.success('Business updated successfully!');
+      } else {
+        await dispatch(createBusiness(businessData as any)).unwrap();
+        toast.success('Business created successfully!');
+      }
+    } catch (error) {
+      const errorMessage = typeof error === 'string' ? error : 'Failed to save business';
+      toast.error(errorMessage);
+      console.error('Save error:', error);
+    }
+  };
+
   return (
-    <>
+    <Layout>
       {/* Fixed Header */}
-      <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 min-h-[75px]">
+      <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 min-h-[75px] -m-6 mb-6">
         <div className="flex items-center space-x-2">
           <div>
             <h1 className="text-lg font-bold text-gray-900">
@@ -233,10 +345,11 @@ export default function BusinessProfile() {
           <Button
             variant="outline"
             className="flex items-center gap-2"
-            onClick={() => console.log("Save changes")}
+            onClick={handleSave}
+            disabled={loading}
           >
             <Save className="w-4 h-4" />
-            Save Changes
+            {loading ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>
@@ -440,10 +553,52 @@ export default function BusinessProfile() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-blue-500" />
-                      Business Hours *
-                    </label>
+                    <div className="flex justify-between items-center mb-4">
+                      <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-blue-500" />
+                        Business Hours *
+                      </label>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newHours = JSON.parse(JSON.stringify(form.businessHours));
+                            Object.keys(newHours).forEach(day => {
+                              newHours[day].closed = false;
+                              newHours[day].open = "09:00";
+                              newHours[day].close = "17:00";
+                            });
+                            onChange("businessHours", newHours);
+                          }}
+                        >
+                          Set All Open
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newHours = JSON.parse(JSON.stringify(form.businessHours));
+                            Object.keys(newHours).forEach(day => {
+                              newHours[day].closed = true;
+                            });
+                            onChange("businessHours", newHours);
+                          }}
+                        >
+                          Set All Closed
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowAddDay(true)}
+                        >
+                          + Add Custom Day
+                        </Button>
+                      </div>
+                    </div>
                     <div className="space-y-3">
                       {Object.entries(form.businessHours).map(
                         ([day, hours]) => (
@@ -461,17 +616,8 @@ export default function BusinessProfile() {
                                 onChange={(
                                   e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
-                                  const newHours = { ...form.businessHours };
-                                  (
-                                    newHours as Record<
-                                      string,
-                                      {
-                                        open: string;
-                                        close: string;
-                                        closed: boolean;
-                                      }
-                                    >
-                                  )[day].closed = !e.target.checked;
+                                  const newHours = JSON.parse(JSON.stringify(form.businessHours));
+                                  newHours[day].closed = !e.target.checked;
                                   onChange("businessHours", newHours);
                                 }}
                                 className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
@@ -486,17 +632,8 @@ export default function BusinessProfile() {
                                 onChange={(
                                   e: React.ChangeEvent<HTMLSelectElement>
                                 ) => {
-                                  const newHours = { ...form.businessHours };
-                                  (
-                                    newHours as Record<
-                                      string,
-                                      {
-                                        open: string;
-                                        close: string;
-                                        closed: boolean;
-                                      }
-                                    >
-                                  )[day].open = e.target.value;
+                                  const newHours = JSON.parse(JSON.stringify(form.businessHours));
+                                  newHours[day].open = e.target.value;
                                   onChange("businessHours", newHours);
                                 }}
                                 disabled={hours.closed}
@@ -524,17 +661,8 @@ export default function BusinessProfile() {
                                 onChange={(
                                   e: React.ChangeEvent<HTMLSelectElement>
                                 ) => {
-                                  const newHours = { ...form.businessHours };
-                                  (
-                                    newHours as Record<
-                                      string,
-                                      {
-                                        open: string;
-                                        close: string;
-                                        closed: boolean;
-                                      }
-                                    >
-                                  )[day].close = e.target.value;
+                                  const newHours = JSON.parse(JSON.stringify(form.businessHours));
+                                  newHours[day].close = e.target.value;
                                   onChange("businessHours", newHours);
                                 }}
                                 disabled={hours.closed}
@@ -805,9 +933,164 @@ export default function BusinessProfile() {
 
         {/* Preview Modal */}
         {showPreview && (
-          <PreviewModal form={form} onClose={() => setShowPreview(false)} />
+          <PreviewModal form={form as any} onClose={() => setShowPreview(false)} />
         )}
       </div>
-    </>
+      
+      {/* Add Custom Day Modal */}
+      {showAddDay && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-[500px] max-w-[90vw]">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">Add Custom Day</h3>
+              <button
+                onClick={() => {
+                  setShowAddDay(false);
+                  setCustomDay({ name: "", open: "09:00", close: "17:00", closed: false });
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Day Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Day Name *
+                </label>
+                <select
+                  value={customDay.name}
+                  onChange={(e) => setCustomDay(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                >
+                  <option value="">Select a day...</option>
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                  <option value="Saturday">Saturday</option>
+                  <option value="Sunday">Sunday</option>
+                  <option value="Holiday">Holiday</option>
+                  <option value="Christmas">Christmas</option>
+                  <option value="New Year">New Year</option>
+                  <option value="Easter">Easter</option>
+                  <option value="Black Friday">Black Friday</option>
+                  <option value="Thanksgiving">Thanksgiving</option>
+                </select>
+              </div>
+
+              {/* Open/Closed Toggle */}
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!customDay.closed}
+                    onChange={(e) => setCustomDay(prev => ({ ...prev, closed: !e.target.checked }))}
+                    className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Open on this day</span>
+                </label>
+              </div>
+
+              {/* Hours Selection */}
+              {!customDay.closed && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Opening Time
+                    </label>
+                    <select
+                      value={customDay.open}
+                      onChange={(e) => setCustomDay(prev => ({ ...prev, open: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    >
+                      {Array.from({ length: 24 }, (_, i) => {
+                        const hour = i.toString().padStart(2, "0");
+                        return (
+                          <option key={`${hour}:00`} value={`${hour}:00`}>
+                            {hour}:00
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Closing Time
+                    </label>
+                    <select
+                      value={customDay.close}
+                      onChange={(e) => setCustomDay(prev => ({ ...prev, close: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    >
+                      {Array.from({ length: 24 }, (_, i) => {
+                        const hour = i.toString().padStart(2, "0");
+                        return (
+                          <option key={`${hour}:00`} value={`${hour}:00`}>
+                            {hour}:00
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Preview */}
+              <div className="bg-gray-50 p-3 rounded-md">
+                <div className="text-sm text-gray-600 mb-1">Preview:</div>
+                <div className="flex items-center justify-between p-2 bg-white border rounded">
+                  <span className="font-medium capitalize">
+                    {customDay.name || "Custom Day"}
+                  </span>
+                  <span className={`text-sm ${
+                    customDay.closed ? "text-red-600" : "text-green-600"
+                  }`}>
+                    {customDay.closed ? "Closed" : `${customDay.open} - ${customDay.close}`}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end mt-6">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAddDay(false);
+                  setCustomDay({ name: "", open: "09:00", close: "17:00", closed: false });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (customDay.name.trim()) {
+                    const newHours = JSON.parse(JSON.stringify(form.businessHours));
+                    newHours[customDay.name.toLowerCase().trim()] = {
+                      open: customDay.open,
+                      close: customDay.close,
+                      closed: customDay.closed
+                    };
+                    onChange("businessHours", newHours);
+                    setShowAddDay(false);
+                    setCustomDay({ name: "", open: "09:00", close: "17:00", closed: false });
+                    toast.success(`Added ${customDay.name}`);
+                  }
+                }}
+                disabled={!customDay.name.trim()}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white"
+              >
+                Add Custom Day
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <Toaster position="bottom-right" />
+    </Layout>
   );
 }
