@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 export  async function verifyToken(token: string) {
   try {
     console.log('token auth',token)
-    return jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+    return jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-here');
   } catch {
     return null;
   }

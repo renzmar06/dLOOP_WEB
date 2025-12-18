@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   Shield,
   Building,
@@ -17,6 +18,7 @@ interface MenuItem {
 }
 
 export default function Sidebar() {
+  const pathname = usePathname();
   const menuItems: MenuItem[] = [
     {
       id: 'dashboard',
@@ -60,7 +62,11 @@ export default function Sidebar() {
           return (
             <div key={item.id} className="relative">
               <Link href={item.href} className="block">
-                <div className="w-full flex items-center px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group text-gray-600 hover:bg-gray-100 hover:text-gray-800">
+                <div className={`w-full flex items-center px-3 py-2 rounded-lg transition-all duration-200 cursor-pointer group ${
+                  pathname === item.href
+                    ? 'bg-yellow-100 text-yellow-700 border-l-4 border-yellow-500'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                }`}>
                   <Icon
                     size={20}
                     className="transition-colors group-hover:text-gray-700"
