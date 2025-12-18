@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
 export async function POST(request: NextRequest) {
@@ -16,13 +16,13 @@ export async function POST(request: NextRequest) {
 
     const timestamp = Date.now();
     const filename = `${timestamp}-${file.name}`;
-    const path = join(process.cwd(), 'public', 'images', filename);
+    const path = join(process.cwd(), 'public', 'upload', filename);
 
     await writeFile(path, buffer);
 
     return NextResponse.json({ 
       success: true, 
-      url: `/images/${filename}`,
+      url: `/upload/${filename}`,
       message: 'File uploaded successfully' 
     });
   } catch (error) {
