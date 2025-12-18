@@ -1,5 +1,10 @@
+import Layout from "@/components/Layout";
+
+
 export default function Home() {
+  
   return (
+    <Layout>
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to CycleIQ</h1>
@@ -25,5 +30,6 @@ export default function Home() {
         </div>
       </div>
     </div>
+    </Layout>
   );
 }

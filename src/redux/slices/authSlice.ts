@@ -35,12 +35,45 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+export const loginUser = createAsyncThunk(
+  'auth/login',
+  async (userData: { email: string; password: string }) => {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Login failed');
+    }
+    
+    return response.json();
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
     clearError: (state) => {
       state.error = null;
+    },
+    logout: (state) => {
+      state.user = null;
+        // Clear localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    },
+    loadUserFromStorage: (state) => {
+      if (typeof window !== 'undefined') {
+        const user = localStorage.getItem('user');
+        if (user) {
+          state.user = JSON.parse(user);
+        }
+      }
     },
   },
   extraReducers: (builder) => {
@@ -56,9 +89,26 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || 'Registration failed';
+      })
+      .addCase(loginUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        // Store in localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(action.payload.user));
+          localStorage.setItem('token', action.payload.token);
+        }
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Login failed';
       });
   },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError, logout, loadUserFromStorage } = authSlice.actions;
 export default authSlice.reducer;
