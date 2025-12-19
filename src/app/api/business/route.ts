@@ -11,7 +11,7 @@ async function getUser(request: NextRequest) {
   const token = getTokenFromRequest(request);
   if (!token) return null;
   
-  const decoded = verifyToken(token) as DecodedToken | null;
+  const decoded = await verifyToken(token) as DecodedToken | null;
   return decoded?.userId ? decoded : null;
 }
 
