@@ -8,3 +8,8 @@ export async function connectDB() {
   }
   return mongoose.connection;
 }
+
+// // const uri = process.env.MONGODB_URI || 'mongodb+srv://renzmarr06_db_user:EbTynF0OhLWL1nbi@cycleiqcluster.5lgkwbk.mongodb.net/cycleiq';
+// const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/dloop';
+// let client: MongoClient;
+// let db: Db;
