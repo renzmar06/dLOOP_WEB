@@ -1,10 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '@/redux/store';
-import { fetchBusinesses, createBusiness, updateBusiness, clearError } from '@/redux/slices/businessSlice';
-import toast, { Toaster } from 'react-hot-toast';
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import {
+  fetchBusinesses,
+  createBusiness,
+  updateBusiness,
+  clearError,
+} from "@/redux/slices/businessSlice";
+import toast, { Toaster } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import {
   User,
@@ -98,20 +103,27 @@ const RichTextEditor = ({
   onChange: (e: { target: { value: string } }) => void;
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
-  const [activeFormats, setActiveFormats] = useState({ bold: false, italic: false, underline: false });
+  const [activeFormats, setActiveFormats] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+  });
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== value) {
       const selection = window.getSelection();
       const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
       const startOffset = range?.startOffset || 0;
-      
+
       editorRef.current.innerHTML = value;
-      
+
       if (range && editorRef.current.firstChild) {
         try {
           const newRange = document.createRange();
-          newRange.setStart(editorRef.current.firstChild, Math.min(startOffset, editorRef.current.textContent?.length || 0));
+          newRange.setStart(
+            editorRef.current.firstChild,
+            Math.min(startOffset, editorRef.current.textContent?.length || 0)
+          );
           newRange.collapse(true);
           selection?.removeAllRanges();
           selection?.addRange(newRange);
@@ -124,9 +136,9 @@ const RichTextEditor = ({
 
   const updateActiveFormats = () => {
     setActiveFormats({
-      bold: document.queryCommandState('bold'),
-      italic: document.queryCommandState('italic'),
-      underline: document.queryCommandState('underline')
+      bold: document.queryCommandState("bold"),
+      italic: document.queryCommandState("italic"),
+      underline: document.queryCommandState("underline"),
     });
   };
 
@@ -148,21 +160,27 @@ const RichTextEditor = ({
           <button
             type="button"
             onClick={() => handleFormat("bold")}
-            className={`p-1 rounded ${activeFormats.bold ? 'bg-yellow-200' : 'hover:bg-gray-200'}`}
+            className={`p-1 rounded ${
+              activeFormats.bold ? "bg-yellow-200" : "hover:bg-gray-200"
+            }`}
           >
             <Bold className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => handleFormat("italic")}
-            className={`p-1 rounded ${activeFormats.italic ? 'bg-yellow-200' : 'hover:bg-gray-200'}`}
+            className={`p-1 rounded ${
+              activeFormats.italic ? "bg-yellow-200" : "hover:bg-gray-200"
+            }`}
           >
             <Italic className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => handleFormat("underline")}
-            className={`p-1 rounded ${activeFormats.underline ? 'bg-yellow-200' : 'hover:bg-gray-200'}`}
+            className={`p-1 rounded ${
+              activeFormats.underline ? "bg-yellow-200" : "hover:bg-gray-200"
+            }`}
           >
             <Underline className="w-4 h-4" />
           </button>
@@ -177,7 +195,9 @@ const RichTextEditor = ({
         <div
           ref={editorRef}
           contentEditable
-          onInput={(e) => onChange({ target: { value: e.currentTarget.innerHTML } })}
+          onInput={(e) =>
+            onChange({ target: { value: e.currentTarget.innerHTML } })
+          }
           onMouseUp={updateActiveFormats}
           onKeyUp={updateActiveFormats}
           className="p-3 min-h-[100px] focus:outline-none"
@@ -191,17 +211,22 @@ const RichTextEditor = ({
 export default function BusinessProfile() {
   const dispatch = useDispatch<AppDispatch>();
   const businessState = useSelector((state: RootState) => {
-    console.log('Full Redux state:', state);
-    console.log('Business slice:', state.business);
+    console.log("Full Redux state:", state);
+    console.log("Business slice:", state.business);
     return state.business || {};
   });
-  const { businesses = [], currentBusiness = null, loading = false, error = null } = businessState;
-  
-  console.log('Redux business state:', businessState);
-  console.log('Businesses array:', businesses);
-  console.log('Businesses length:', businesses.length);
-  
-  const [activeTab, setActiveTab] = useState("basic");
+  const {
+    businesses = [],
+    currentBusiness = null,
+    loading = false,
+    error = null,
+  } = businessState;
+
+  console.log("Redux business state:", businessState);
+  console.log("Businesses array:", businesses);
+  console.log("Businesses length:", businesses.length);
+
+  const [activeTab, setActiveTab] = useState("business-info");
   const [showPreview, setShowPreview] = useState(false);
 
   interface BusinessFormData {
@@ -218,7 +243,10 @@ export default function BusinessProfile() {
     description: string;
     registeredId: string;
     legalName: string;
-    businessHours: Record<string, { open: string; close: string; closed: boolean }>;
+    businessHours: Record<
+      string,
+      { open: string; close: string; closed: boolean }
+    >;
     instagram: string;
     facebook: string;
     twitter: string;
@@ -256,21 +284,24 @@ export default function BusinessProfile() {
   useEffect(() => {
     const loadBusinessData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/business', {
+        const token = localStorage.getItem("token");
+        const response = await fetch("/api/business", {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         const data = await response.json();
-        console.log('Direct API call result:', data);
-        
+        console.log("Direct API call result:", data);
+
         if (data.success && data.data.length > 0) {
           const business = data.data[0];
-          console.log('Loading business directly:', business);
-          
+          console.log("Loading business directly:", business);
+
           // Convert business hours
-          const businessHoursObj: Record<string, { open: string; close: string; closed: boolean }> = {
+          const businessHoursObj: Record<
+            string,
+            { open: string; close: string; closed: boolean }
+          > = {
             monday: { open: "09:00", close: "17:00", closed: true },
             tuesday: { open: "09:00", close: "17:00", closed: true },
             wednesday: { open: "09:00", close: "17:00", closed: true },
@@ -279,17 +310,17 @@ export default function BusinessProfile() {
             saturday: { open: "09:00", close: "17:00", closed: true },
             sunday: { open: "09:00", close: "17:00", closed: true },
           };
-          
+
           if (Array.isArray(business.businessHours)) {
             business.businessHours.forEach((entry: any) => {
               businessHoursObj[entry.day] = {
                 open: entry.open,
                 close: entry.close,
-                closed: entry.closed
+                closed: entry.closed,
               };
             });
           }
-          
+
           setForm({
             _id: business._id,
             businessName: business.businessName || "",
@@ -310,31 +341,34 @@ export default function BusinessProfile() {
             twitter: business.twitter || "",
             seoKeywords: business.seoKeywords || "",
           });
-          
-          console.log('Form populated directly from API');
+
+          console.log("Form populated directly from API");
         }
       } catch (error) {
-        console.error('Direct API call failed:', error);
+        console.error("Direct API call failed:", error);
       }
     };
-    
+
     loadBusinessData();
   }, []);
 
   useEffect(() => {
-    console.log('=== FORM POPULATION useEffect ===');
-    console.log('useEffect triggered, businesses length:', businesses.length);
-    console.log('businesses array:', businesses);
-    console.log('Type of businesses:', typeof businesses);
-    console.log('Is array?:', Array.isArray(businesses));
-    
+    console.log("=== FORM POPULATION useEffect ===");
+    console.log("useEffect triggered, businesses length:", businesses.length);
+    console.log("businesses array:", businesses);
+    console.log("Type of businesses:", typeof businesses);
+    console.log("Is array?:", Array.isArray(businesses));
+
     if (businesses.length > 0) {
       const business = businesses[0];
-      console.log('Loading business data:', business);
-      console.log('Business name from API:', business.businessName);
-      
+      console.log("Loading business data:", business);
+      console.log("Business name from API:", business.businessName);
+
       // Convert business hours array to object
-      const businessHoursObj: Record<string, { open: string; close: string; closed: boolean }> = {
+      const businessHoursObj: Record<
+        string,
+        { open: string; close: string; closed: boolean }
+      > = {
         monday: { open: "09:00", close: "17:00", closed: true },
         tuesday: { open: "09:00", close: "17:00", closed: true },
         wednesday: { open: "09:00", close: "17:00", closed: true },
@@ -343,17 +377,17 @@ export default function BusinessProfile() {
         saturday: { open: "09:00", close: "17:00", closed: true },
         sunday: { open: "09:00", close: "17:00", closed: true },
       };
-      
+
       if (Array.isArray(business.businessHours)) {
         business.businessHours.forEach((entry: any) => {
           businessHoursObj[entry.day] = {
             open: entry.open,
             close: entry.close,
-            closed: entry.closed
+            closed: entry.closed,
           };
         });
       }
-      
+
       // Set the complete form data
       setForm({
         _id: business._id,
@@ -375,26 +409,26 @@ export default function BusinessProfile() {
         twitter: business.twitter || "",
         seoKeywords: business.seoKeywords || "",
       });
-      
-      console.log('About to set form with data:', {
-        businessName: business.businessName,
-        phone: business.phone
-      });
-      
-      console.log('Form populated with business data');
-      console.log('New form state:', {
+
+      console.log("About to set form with data:", {
         businessName: business.businessName,
         phone: business.phone,
-        email: business.email
+      });
+
+      console.log("Form populated with business data");
+      console.log("New form state:", {
+        businessName: business.businessName,
+        phone: business.phone,
+        email: business.email,
       });
     } else {
-      console.log('No businesses data to populate form');
+      console.log("No businesses data to populate form");
     }
   }, [businesses]);
 
   // Debug: Log form state changes
   useEffect(() => {
-    console.log('Form state updated:', form.businessName);
+    console.log("Form state updated:", form.businessName);
   }, [form.businessName]);
 
   useEffect(() => {
@@ -409,19 +443,19 @@ export default function BusinessProfile() {
 
   const validateForm = () => {
     if (!form.businessName.trim()) {
-      toast.error('Business name is required');
+      toast.error("Business name is required");
       return false;
     }
     if (!form.phone.trim()) {
-      toast.error('Phone number is required');
+      toast.error("Phone number is required");
       return false;
     }
     if (!form.email.trim()) {
-      toast.error('Email is required');
+      toast.error("Email is required");
       return false;
     }
     if (!/\S+@\S+\.\S+/.test(form.email)) {
-      toast.error('Please enter a valid email');
+      toast.error("Please enter a valid email");
       return false;
     }
     return true;
@@ -429,32 +463,37 @@ export default function BusinessProfile() {
 
   const handleSave = async () => {
     if (!validateForm()) return;
-    
+
     try {
       // Convert businessHours object to array format
-      const businessHoursArray = Object.entries(form.businessHours).map(([day, hours]) => ({
-        day,
-        open: hours.open,
-        close: hours.close,
-        closed: hours.closed
-      }));
-      
+      const businessHoursArray = Object.entries(form.businessHours).map(
+        ([day, hours]) => ({
+          day,
+          open: hours.open,
+          close: hours.close,
+          closed: hours.closed,
+        })
+      );
+
       const businessData = {
         ...form,
-        businessHours: businessHoursArray
+        businessHours: businessHoursArray,
       };
-      
+
       if (form._id) {
-        await dispatch(updateBusiness({ id: form._id, businessData: businessData as any })).unwrap();
-        toast.success('Business updated successfully!');
+        await dispatch(
+          updateBusiness({ id: form._id, businessData: businessData as any })
+        ).unwrap();
+        toast.success("Business updated successfully!");
       } else {
         await dispatch(createBusiness(businessData as any)).unwrap();
-        toast.success('Business created successfully!');
+        toast.success("Business created successfully!");
       }
     } catch (error) {
-      const errorMessage = typeof error === 'string' ? error : 'Failed to save business';
+      const errorMessage =
+        typeof error === "string" ? error : "Failed to save business";
       toast.error(errorMessage);
-      console.error('Save error:', error);
+      console.error("Save error:", error);
     }
   };
 
@@ -488,7 +527,7 @@ export default function BusinessProfile() {
             disabled={loading}
           >
             <Save className="w-4 h-4" />
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </div>
@@ -501,9 +540,10 @@ export default function BusinessProfile() {
             <div className="border-b border-gray-200">
               <nav className="flex">
                 {[
-                  ["basic", "Basic Information"],
-                  ["legal", "Working Hours"],
-                  ["social", "Social Media and Settings"],
+                  ["business-info", "Business Information"],
+                  ["social-settings", "Social Media & Settings"],
+                  ["locations", "Business Locations"],
+                  ["working-hours", "Working Hours"],
                 ].map(([id, label]) => (
                   <button
                     key={id}
@@ -522,26 +562,8 @@ export default function BusinessProfile() {
 
             {/* Tab Content */}
             <div className="p-6">
-              {activeTab === "basic" && (
+              {activeTab === "business-info" && (
                 <div className="space-y-6 max-w-2xl">
-                  <Input
-                    label="Business Name *"
-                    icon={Building}
-                    iconColor="text-blue-600"
-                    value={form.businessName}
-                    onChange={(e) => onChange("businessName", e.target.value)}
-                    onFocus={() => console.log('Current form state:', form)}
-                    placeholder="Enter business name"
-                  />
-
-                  <Input
-                    label="Business Type "
-                    icon={Star}
-                    iconColor="text-yellow-500"
-                    value={form.businessType}
-                    onChange={(e) => onChange("businessType", e.target.value)}
-                    placeholder="e.g., Restaurant, Retail, Service"
-                  />
 
                   {/* Business Logo */}
                   <div>
@@ -584,7 +606,83 @@ export default function BusinessProfile() {
                       </div>
                     </div>
                   </div>
+                  
+                  <Input
+                    label="Business Name *"
+                    icon={Building}
+                    iconColor="text-blue-600"
+                    value={form.businessName}
+                    onChange={(e) => onChange("businessName", e.target.value)}
+                    onFocus={() => console.log("Current form state:", form)}
+                    placeholder="Enter business name"
+                  />
 
+                  <Input
+                    label="Business Type "
+                    icon={Star}
+                    iconColor="text-yellow-500"
+                    value={form.businessType}
+                    onChange={(e) => onChange("businessType", e.target.value)}
+                    placeholder="e.g., Restaurant, Retail, Service"
+                  />
+
+                  <RichTextEditor
+                    label="Business Description *"
+                    value={form.description}
+                    onChange={(e) => onChange("description", e.target.value)}
+                  />
+                </div>
+              )}
+
+              {activeTab === "social-settings" && (
+                <div className="space-y-6 max-w-2xl">
+                  <div className="grid grid-cols-3 gap-4">
+                    <Input
+                      label="Instagram"
+                      icon={Instagram}
+                      iconColor="text-pink-500"
+                      value={form.instagram}
+                      onChange={(e) => onChange("instagram", e.target.value)}
+                      placeholder="URL"
+                    />
+                    <Input
+                      label="Facebook"
+                      icon={Facebook}
+                      iconColor="text-blue-600"
+                      value={form.facebook}
+                      onChange={(e) => onChange("facebook", e.target.value)}
+                      placeholder="URL"
+                    />
+                    <Input
+                      label="Twitter"
+                      icon={Twitter}
+                      iconColor="text-sky-500"
+                      value={form.twitter}
+                      onChange={(e) => onChange("twitter", e.target.value)}
+                      placeholder="URL"
+                    />
+                  </div>
+
+                  <Textarea
+                    label="SEO Enhancers"
+                    value={form.seoKeywords}
+                    onChange={(e) => onChange("seoKeywords", e.target.value)}
+                    placeholder="Keywords to help customers find your business (comma separated)"
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Registered ID / Legal Info"
+                      value={form.registeredId}
+                      onChange={(e) => onChange("registeredId", e.target.value)}
+                      placeholder="e.g., Business Registration Number"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "locations" && (
+                <div className="space-y-6 max-w-2xl">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       label="Phone *"
@@ -603,6 +701,7 @@ export default function BusinessProfile() {
                       placeholder="Business email"
                     />
                   </div>
+
                   <Input
                     label="Website"
                     icon={Globe}
@@ -611,10 +710,11 @@ export default function BusinessProfile() {
                     onChange={(e) => onChange("website", e.target.value)}
                     placeholder="https://website.com"
                   />
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                       <Home className="w-4 h-4 text-blue-500" />
-                      Location / Service Area
+                      Primary Location / Service Area
                     </label>
                     <div className="relative">
                       <input
@@ -667,31 +767,17 @@ export default function BusinessProfile() {
                     )}
                   </div>
 
-                  <RichTextEditor
-                    label="Business Description *"
-                    value={form.description}
-                    onChange={(e) => onChange("description", e.target.value)}
+                  <Input
+                    label="Service Area Description"
+                    value={form.serviceArea}
+                    onChange={(e) => onChange("serviceArea", e.target.value)}
+                    placeholder="Describe your service coverage area"
                   />
                 </div>
               )}
 
-              {activeTab === "legal" && (
+              {activeTab === "working-hours" && (
                 <div className="space-y-6 max-w-2xl">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      label="Registered ID / Legal Info "
-                      value={form.registeredId}
-                      onChange={(e) => onChange("registeredId", e.target.value)}
-                      placeholder=" e.g., Business Registration Number"
-                    />
-                    {/* <Input
-                    label="Legal Name"
-                    value={form.legalName}
-                    onChange={(e) => onChange("legalName", e.target.value)}
-                    placeholder="Official legal business name"
-                  /> */}
-                  </div>
-
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
@@ -704,8 +790,10 @@ export default function BusinessProfile() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const newHours = JSON.parse(JSON.stringify(form.businessHours));
-                            Object.keys(newHours).forEach(day => {
+                            const newHours = JSON.parse(
+                              JSON.stringify(form.businessHours)
+                            );
+                            Object.keys(newHours).forEach((day) => {
                               newHours[day].closed = false;
                               newHours[day].open = "09:00";
                               newHours[day].close = "17:00";
@@ -720,8 +808,10 @@ export default function BusinessProfile() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            const newHours = JSON.parse(JSON.stringify(form.businessHours));
-                            Object.keys(newHours).forEach(day => {
+                            const newHours = JSON.parse(
+                              JSON.stringify(form.businessHours)
+                            );
+                            Object.keys(newHours).forEach((day) => {
                               newHours[day].closed = true;
                             });
                             onChange("businessHours", newHours);
@@ -729,7 +819,6 @@ export default function BusinessProfile() {
                         >
                           Set All Closed
                         </Button>
-
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -749,7 +838,9 @@ export default function BusinessProfile() {
                                 onChange={(
                                   e: React.ChangeEvent<HTMLInputElement>
                                 ) => {
-                                  const newHours = JSON.parse(JSON.stringify(form.businessHours));
+                                  const newHours = JSON.parse(
+                                    JSON.stringify(form.businessHours)
+                                  );
                                   newHours[day].closed = !e.target.checked;
                                   onChange("businessHours", newHours);
                                 }}
@@ -765,7 +856,9 @@ export default function BusinessProfile() {
                                 onChange={(
                                   e: React.ChangeEvent<HTMLSelectElement>
                                 ) => {
-                                  const newHours = JSON.parse(JSON.stringify(form.businessHours));
+                                  const newHours = JSON.parse(
+                                    JSON.stringify(form.businessHours)
+                                  );
                                   newHours[day].open = e.target.value;
                                   onChange("businessHours", newHours);
                                 }}
@@ -794,7 +887,9 @@ export default function BusinessProfile() {
                                 onChange={(
                                   e: React.ChangeEvent<HTMLSelectElement>
                                 ) => {
-                                  const newHours = JSON.parse(JSON.stringify(form.businessHours));
+                                  const newHours = JSON.parse(
+                                    JSON.stringify(form.businessHours)
+                                  );
                                   newHours[day].close = e.target.value;
                                   onChange("businessHours", newHours);
                                 }}
@@ -823,44 +918,6 @@ export default function BusinessProfile() {
                       )}
                     </div>
                   </div>
-                </div>
-              )}
-
-              {activeTab === "social" && (
-                <div className="space-y-6 max-w-2xl">
-                  <div className="grid grid-cols-3 gap-4">
-                    <Input
-                      label="Instagram"
-                      icon={Instagram}
-                      iconColor="text-pink-500"
-                      value={form.instagram}
-                      onChange={(e) => onChange("instagram", e.target.value)}
-                      placeholder="URl"
-                    />
-                    <Input
-                      label="Facebook"
-                      icon={Facebook}
-                      iconColor="text-blue-600"
-                      value={form.facebook}
-                      onChange={(e) => onChange("facebook", e.target.value)}
-                      placeholder=" URL"
-                    />
-                    <Input
-                      label="Twitter"
-                      icon={Twitter}
-                      iconColor="text-sky-500"
-                      value={form.twitter}
-                      onChange={(e) => onChange("twitter", e.target.value)}
-                      placeholder="URL"
-                    />
-                  </div>
-
-                  <Textarea
-                    label="SEO Enhancers"
-                    value={form.seoKeywords}
-                    onChange={(e) => onChange("seoKeywords", e.target.value)}
-                    placeholder="Keywords to help customers find your business (comma separated)"
-                  />
                 </div>
               )}
             </div>
@@ -1066,12 +1123,13 @@ export default function BusinessProfile() {
 
         {/* Preview Modal */}
         {showPreview && (
-          <PreviewModal form={form as any} onClose={() => setShowPreview(false)} />
+          <PreviewModal
+            form={form as any}
+            onClose={() => setShowPreview(false)}
+          />
         )}
       </div>
-      
 
-      
       <Toaster position="bottom-right" />
     </Layout>
   );
