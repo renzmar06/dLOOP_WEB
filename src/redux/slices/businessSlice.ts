@@ -53,15 +53,18 @@ export const fetchBusinesses = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('token');
+      console.log('Fetching businesses with token:', token);
       const response = await fetch('/api/business', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
       const data = await response.json();
+      console.log('API Response:', data);
       if (!data.success) throw new Error(data.message);
       return data.data;
     } catch (error) {
+      console.error('Fetch businesses error:', error);
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch businesses');
     }
   }
@@ -131,8 +134,10 @@ const businessSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchBusinesses.fulfilled, (state, action) => {
+        console.log('Redux: fetchBusinesses fulfilled with payload:', action.payload);
         state.loading = false;
         state.businesses = action.payload;
+        console.log('Redux: Updated businesses state:', state.businesses);
       })
       .addCase(fetchBusinesses.rejected, (state, action) => {
         state.loading = false;

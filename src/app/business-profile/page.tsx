@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/redux/store';
 import { fetchBusinesses, createBusiness, updateBusiness, clearError } from '@/redux/slices/businessSlice';
@@ -97,15 +97,45 @@ const RichTextEditor = ({
   value: string;
   onChange: (e: { target: { value: string } }) => void;
 }) => {
-  const [isBold, setIsBold] = useState(false);
-  const [isItalic, setIsItalic] = useState(false);
-  const [isUnderline, setIsUnderline] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [activeFormats, setActiveFormats] = useState({ bold: false, italic: false, underline: false });
+
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      const selection = window.getSelection();
+      const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+      const startOffset = range?.startOffset || 0;
+      
+      editorRef.current.innerHTML = value;
+      
+      if (range && editorRef.current.firstChild) {
+        try {
+          const newRange = document.createRange();
+          newRange.setStart(editorRef.current.firstChild, Math.min(startOffset, editorRef.current.textContent?.length || 0));
+          newRange.collapse(true);
+          selection?.removeAllRanges();
+          selection?.addRange(newRange);
+        } catch (e) {
+          // Ignore cursor positioning errors
+        }
+      }
+    }
+  }, [value]);
+
+  const updateActiveFormats = () => {
+    setActiveFormats({
+      bold: document.queryCommandState('bold'),
+      italic: document.queryCommandState('italic'),
+      underline: document.queryCommandState('underline')
+    });
+  };
 
   const handleFormat = (format: string) => {
     document.execCommand(format, false, "");
-    if (format === "bold") setIsBold(!isBold);
-    if (format === "italic") setIsItalic(!isItalic);
-    if (format === "underline") setIsUnderline(!isUnderline);
+    if (editorRef.current) {
+      onChange({ target: { value: editorRef.current.innerHTML } });
+      updateActiveFormats();
+    }
   };
 
   return (
@@ -118,27 +148,21 @@ const RichTextEditor = ({
           <button
             type="button"
             onClick={() => handleFormat("bold")}
-            className={`p-1 rounded ${
-              isBold ? "bg-yellow-200" : "hover:bg-gray-200"
-            }`}
+            className={`p-1 rounded ${activeFormats.bold ? 'bg-yellow-200' : 'hover:bg-gray-200'}`}
           >
             <Bold className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => handleFormat("italic")}
-            className={`p-1 rounded ${
-              isItalic ? "bg-yellow-200" : "hover:bg-gray-200"
-            }`}
+            className={`p-1 rounded ${activeFormats.italic ? 'bg-yellow-200' : 'hover:bg-gray-200'}`}
           >
             <Italic className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => handleFormat("underline")}
-            className={`p-1 rounded ${
-              isUnderline ? "bg-yellow-200" : "hover:bg-gray-200"
-            }`}
+            className={`p-1 rounded ${activeFormats.underline ? 'bg-yellow-200' : 'hover:bg-gray-200'}`}
           >
             <Underline className="w-4 h-4" />
           </button>
@@ -151,14 +175,13 @@ const RichTextEditor = ({
           </button>
         </div>
         <div
+          ref={editorRef}
           contentEditable
-          onInput={(e) =>
-            onChange({ target: { value: e.currentTarget.innerHTML } })
-          }
-          className="p-3 min-h-[100px] focus:outline-none text-left"
-          dir="ltr"
-          style={{ textAlign: "left" }}
-          dangerouslySetInnerHTML={{ __html: value }}
+          onInput={(e) => onChange({ target: { value: e.currentTarget.innerHTML } })}
+          onMouseUp={updateActiveFormats}
+          onKeyUp={updateActiveFormats}
+          className="p-3 min-h-[100px] focus:outline-none"
+          suppressContentEditableWarning
         />
       </div>
     </div>
@@ -167,17 +190,20 @@ const RichTextEditor = ({
 
 export default function BusinessProfile() {
   const dispatch = useDispatch<AppDispatch>();
-  const { businesses, currentBusiness, loading, error } = useSelector((state: RootState) => state.business);
+  const businessState = useSelector((state: RootState) => {
+    console.log('Full Redux state:', state);
+    console.log('Business slice:', state.business);
+    return state.business || {};
+  });
+  const { businesses = [], currentBusiness = null, loading = false, error = null } = businessState;
+  
+  console.log('Redux business state:', businessState);
+  console.log('Businesses array:', businesses);
+  console.log('Businesses length:', businesses.length);
   
   const [activeTab, setActiveTab] = useState("basic");
   const [showPreview, setShowPreview] = useState(false);
-  const [showAddDay, setShowAddDay] = useState(false);
-  const [customDay, setCustomDay] = useState({
-    name: "",
-    open: "09:00",
-    close: "17:00",
-    closed: false
-  });
+
   interface BusinessFormData {
     _id?: string;
     businessName: string;
@@ -228,35 +254,148 @@ export default function BusinessProfile() {
   });
 
   useEffect(() => {
-    dispatch(fetchBusinesses());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (!currentBusiness && businesses.length === 0) return;
-    
-    const business = currentBusiness || businesses[0];
-    const businessHoursObj: Record<string, { open: string; close: string; closed: boolean }> = {
-      monday: { open: "09:00", close: "17:00", closed: true },
-      tuesday: { open: "09:00", close: "17:00", closed: true },
-      wednesday: { open: "09:00", close: "17:00", closed: true },
-      thursday: { open: "09:00", close: "17:00", closed: true },
-      friday: { open: "09:00", close: "17:00", closed: true },
-      saturday: { open: "09:00", close: "17:00", closed: true },
-      sunday: { open: "09:00", close: "17:00", closed: true },
+    const loadBusinessData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/business', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        console.log('Direct API call result:', data);
+        
+        if (data.success && data.data.length > 0) {
+          const business = data.data[0];
+          console.log('Loading business directly:', business);
+          
+          // Convert business hours
+          const businessHoursObj: Record<string, { open: string; close: string; closed: boolean }> = {
+            monday: { open: "09:00", close: "17:00", closed: true },
+            tuesday: { open: "09:00", close: "17:00", closed: true },
+            wednesday: { open: "09:00", close: "17:00", closed: true },
+            thursday: { open: "09:00", close: "17:00", closed: true },
+            friday: { open: "09:00", close: "17:00", closed: true },
+            saturday: { open: "09:00", close: "17:00", closed: true },
+            sunday: { open: "09:00", close: "17:00", closed: true },
+          };
+          
+          if (Array.isArray(business.businessHours)) {
+            business.businessHours.forEach((entry: any) => {
+              businessHoursObj[entry.day] = {
+                open: entry.open,
+                close: entry.close,
+                closed: entry.closed
+              };
+            });
+          }
+          
+          setForm({
+            _id: business._id,
+            businessName: business.businessName || "",
+            logo: business.logo || "",
+            phone: business.phone || "",
+            email: business.email || "",
+            website: business.website || "",
+            googleLocation: business.googleLocation || "",
+            serviceArea: business.serviceArea || "",
+            businessType: business.businessType || "",
+            industry: business.industry || "",
+            description: business.description || "",
+            registeredId: business.registeredId || "",
+            legalName: business.legalName || "",
+            businessHours: businessHoursObj,
+            instagram: business.instagram || "",
+            facebook: business.facebook || "",
+            twitter: business.twitter || "",
+            seoKeywords: business.seoKeywords || "",
+          });
+          
+          console.log('Form populated directly from API');
+        }
+      } catch (error) {
+        console.error('Direct API call failed:', error);
+      }
     };
     
-    if (Array.isArray(business.businessHours)) {
-      business.businessHours.forEach((entry: { day: string; open: string; close: string; closed: boolean }) => {
-        businessHoursObj[entry.day] = {
-          open: entry.open,
-          close: entry.close,
-          closed: entry.closed
-        };
-      });
-    }
+    loadBusinessData();
+  }, []);
+
+  useEffect(() => {
+    console.log('=== FORM POPULATION useEffect ===');
+    console.log('useEffect triggered, businesses length:', businesses.length);
+    console.log('businesses array:', businesses);
+    console.log('Type of businesses:', typeof businesses);
+    console.log('Is array?:', Array.isArray(businesses));
     
-    setForm(prev => ({ ...prev, ...business, businessHours: businessHoursObj }));
-  }, [currentBusiness, businesses]);
+    if (businesses.length > 0) {
+      const business = businesses[0];
+      console.log('Loading business data:', business);
+      console.log('Business name from API:', business.businessName);
+      
+      // Convert business hours array to object
+      const businessHoursObj: Record<string, { open: string; close: string; closed: boolean }> = {
+        monday: { open: "09:00", close: "17:00", closed: true },
+        tuesday: { open: "09:00", close: "17:00", closed: true },
+        wednesday: { open: "09:00", close: "17:00", closed: true },
+        thursday: { open: "09:00", close: "17:00", closed: true },
+        friday: { open: "09:00", close: "17:00", closed: true },
+        saturday: { open: "09:00", close: "17:00", closed: true },
+        sunday: { open: "09:00", close: "17:00", closed: true },
+      };
+      
+      if (Array.isArray(business.businessHours)) {
+        business.businessHours.forEach((entry: any) => {
+          businessHoursObj[entry.day] = {
+            open: entry.open,
+            close: entry.close,
+            closed: entry.closed
+          };
+        });
+      }
+      
+      // Set the complete form data
+      setForm({
+        _id: business._id,
+        businessName: business.businessName || "",
+        logo: business.logo || "",
+        phone: business.phone || "",
+        email: business.email || "",
+        website: business.website || "",
+        googleLocation: business.googleLocation || "",
+        serviceArea: business.serviceArea || "",
+        businessType: business.businessType || "",
+        industry: business.industry || "",
+        description: business.description || "",
+        registeredId: business.registeredId || "",
+        legalName: business.legalName || "",
+        businessHours: businessHoursObj,
+        instagram: business.instagram || "",
+        facebook: business.facebook || "",
+        twitter: business.twitter || "",
+        seoKeywords: business.seoKeywords || "",
+      });
+      
+      console.log('About to set form with data:', {
+        businessName: business.businessName,
+        phone: business.phone
+      });
+      
+      console.log('Form populated with business data');
+      console.log('New form state:', {
+        businessName: business.businessName,
+        phone: business.phone,
+        email: business.email
+      });
+    } else {
+      console.log('No businesses data to populate form');
+    }
+  }, [businesses]);
+
+  // Debug: Log form state changes
+  useEffect(() => {
+    console.log('Form state updated:', form.businessName);
+  }, [form.businessName]);
 
   useEffect(() => {
     if (error) {
@@ -391,6 +530,7 @@ export default function BusinessProfile() {
                     iconColor="text-blue-600"
                     value={form.businessName}
                     onChange={(e) => onChange("businessName", e.target.value)}
+                    onFocus={() => console.log('Current form state:', form)}
                     placeholder="Enter business name"
                   />
 
@@ -589,14 +729,7 @@ export default function BusinessProfile() {
                         >
                           Set All Closed
                         </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowAddDay(true)}
-                        >
-                          + Add Custom Day
-                        </Button>
+
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -937,158 +1070,7 @@ export default function BusinessProfile() {
         )}
       </div>
       
-      {/* Add Custom Day Modal */}
-      {showAddDay && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-[500px] max-w-[90vw]">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-gray-900">Add Custom Day</h3>
-              <button
-                onClick={() => {
-                  setShowAddDay(false);
-                  setCustomDay({ name: "", open: "09:00", close: "17:00", closed: false });
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              {/* Day Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Day Name *
-                </label>
-                <select
-                  value={customDay.name}
-                  onChange={(e) => setCustomDay(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                >
-                  <option value="">Select a day...</option>
-                  <option value="Monday">Monday</option>
-                  <option value="Tuesday">Tuesday</option>
-                  <option value="Wednesday">Wednesday</option>
-                  <option value="Thursday">Thursday</option>
-                  <option value="Friday">Friday</option>
-                  <option value="Saturday">Saturday</option>
-                  <option value="Sunday">Sunday</option>
-                  <option value="Holiday">Holiday</option>
-                  <option value="Christmas">Christmas</option>
-                  <option value="New Year">New Year</option>
-                  <option value="Easter">Easter</option>
-                  <option value="Black Friday">Black Friday</option>
-                  <option value="Thanksgiving">Thanksgiving</option>
-                </select>
-              </div>
 
-              {/* Open/Closed Toggle */}
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={!customDay.closed}
-                    onChange={(e) => setCustomDay(prev => ({ ...prev, closed: !e.target.checked }))}
-                    className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-400"
-                  />
-                  <span className="text-sm font-medium text-gray-700">Open on this day</span>
-                </label>
-              </div>
-
-              {/* Hours Selection */}
-              {!customDay.closed && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Opening Time
-                    </label>
-                    <select
-                      value={customDay.open}
-                      onChange={(e) => setCustomDay(prev => ({ ...prev, open: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                    >
-                      {Array.from({ length: 24 }, (_, i) => {
-                        const hour = i.toString().padStart(2, "0");
-                        return (
-                          <option key={`${hour}:00`} value={`${hour}:00`}>
-                            {hour}:00
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Closing Time
-                    </label>
-                    <select
-                      value={customDay.close}
-                      onChange={(e) => setCustomDay(prev => ({ ...prev, close: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                    >
-                      {Array.from({ length: 24 }, (_, i) => {
-                        const hour = i.toString().padStart(2, "0");
-                        return (
-                          <option key={`${hour}:00`} value={`${hour}:00`}>
-                            {hour}:00
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {/* Preview */}
-              <div className="bg-gray-50 p-3 rounded-md">
-                <div className="text-sm text-gray-600 mb-1">Preview:</div>
-                <div className="flex items-center justify-between p-2 bg-white border rounded">
-                  <span className="font-medium capitalize">
-                    {customDay.name || "Custom Day"}
-                  </span>
-                  <span className={`text-sm ${
-                    customDay.closed ? "text-red-600" : "text-green-600"
-                  }`}>
-                    {customDay.closed ? "Closed" : `${customDay.open} - ${customDay.close}`}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end mt-6">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowAddDay(false);
-                  setCustomDay({ name: "", open: "09:00", close: "17:00", closed: false });
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  if (customDay.name.trim()) {
-                    const newHours = JSON.parse(JSON.stringify(form.businessHours));
-                    newHours[customDay.name.toLowerCase().trim()] = {
-                      open: customDay.open,
-                      close: customDay.close,
-                      closed: customDay.closed
-                    };
-                    onChange("businessHours", newHours);
-                    setShowAddDay(false);
-                    setCustomDay({ name: "", open: "09:00", close: "17:00", closed: false });
-                    toast.success(`Added ${customDay.name}`);
-                  }
-                }}
-                disabled={!customDay.name.trim()}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white"
-              >
-                Add Custom Day
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
       
       <Toaster position="bottom-right" />
     </Layout>
