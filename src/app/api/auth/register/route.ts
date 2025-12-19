@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password } = await request.json();
+    const { firstName, lastName, phone, address, email, password } = await request.json();
 
-    if (!name || !email || !password) {
+    if (!firstName || !lastName || !phone || !address || !email || !password) {
       return NextResponse.json(
-        { message: 'All fields are required' },
+        { success: false, message: 'All fields are required' },
         { status: 200 }
       );
     }
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
       db = await connectDB();
     } catch {
       return NextResponse.json(
-        { sucess: false, message: 'Database connection failed' },
+        { success: false, message: 'Database connection failed' },
         { status: 503 }
       );
     }
@@ -30,8 +31,7 @@ export async function POST(request: NextRequest) {
     const existingUser = await users.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
-      
-        { sucess: false,  message: 'User already exists' },
+        { success: false, message: 'User already exists' },
         { status: 200 }
       );
     }
@@ -41,7 +41,10 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const result = await users.insertOne({
-      name,
+      firstName,
+      lastName,
+      phone,
+      address,
       email,
       password: hashedPassword,
       createdAt: new Date(),
@@ -49,18 +52,39 @@ export async function POST(request: NextRequest) {
 
     const user = {
       id: result.insertedId.toString(),
-      name,
+      firstName,
+      lastName,
+      phone,
+      address,
       email,
     };
 
-    return NextResponse.json({
-      sucess: true,
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '7d' }
+    );
+
+    const response = NextResponse.json({
+      success: true,
       message: 'User registered successfully',
       user,
+      token,
     }, { status: 200 });
+
+    // Set HTTP-only cookie
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    });
+
+    return response;
   } catch (error) {
     return NextResponse.json(
-      { sucess: false, message: 'Internal server error' },
+      { success: false, message: 'Internal server error' },
       { status: 500 }
     );
   }

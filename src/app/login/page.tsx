@@ -117,8 +117,9 @@ export default function Login() {
           </form>
 
           {/* Links */}
-          <div className="flex justify-between text-sm text-gray-600 mt-6">
-            <a href="#" className="hover:underline">Create an Account</a>
+          <div className="flex justify-center text-sm text-gray-600 mt-6">
+            <span>Don't have an account? </span>
+            <a href="/register" className="text-blue-600 hover:underline ml-1">Sign Up</a>
           </div>
         </div>
 
