@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
+import toast, { Toaster } from "react-hot-toast";
 import {
   fetchDocuments,
   uploadDocument,
@@ -41,7 +42,8 @@ export default function BusinessVerificationPage() {
   const handleFileUpload = async (documentType: string, file: File) => {
     // Validate file type
     if (file.type !== 'application/pdf') {
-      alert('Please upload only PDF files.');
+      toast.error("Please upload only PDF files");
+      // alert('Please upload only PDF files.');
       return;
     }
 
@@ -206,6 +208,8 @@ export default function BusinessVerificationPage() {
     const IconComponent = icon;
 
     return (
+      <>
+     <Toaster position="top-right" />
       <div
         className={`flex flex-col sm:flex-row sm:items-start justify-between p-4 border-b border-gray-200 min-h-[75px] gap-4 ${sectionBg}`}
       >
@@ -314,6 +318,7 @@ export default function BusinessVerificationPage() {
           </span>
         </div>
       </div>
+    </>
     );
   };
 
