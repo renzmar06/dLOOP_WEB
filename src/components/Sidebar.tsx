@@ -7,6 +7,7 @@ import {
   Building,
   Leaf,
   LayoutDashboard,
+  Recycle,
 } from 'lucide-react';
 
 interface MenuItem {
@@ -35,6 +36,12 @@ export default function Sidebar() {
       icon: Shield,
       label: 'Business Verification',
       href: '/business-verification',
+    },
+    {
+      id: 'materials-accepted',
+      icon: Recycle,
+      label: 'materials-accepted',
+      href: '/materials-accepted',
     }
   ];
 
