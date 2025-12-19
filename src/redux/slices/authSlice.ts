@@ -2,8 +2,11 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 interface User {
   id: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  name: string;
+  phone: string;
+  address: string;
 }
 
 interface AuthState {
@@ -20,35 +23,47 @@ const initialState: AuthState = {
 
 export const registerUser = createAsyncThunk(
   'auth/register',
-  async (userData: { name: string; email: string; password: string }) => {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Registration failed');
+  async (userData: { firstName: string; lastName: string; phone: string; address: string; email: string; password: string }, { rejectWithValue }) => {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        return rejectWithValue(data.message);
+      }
+      
+      return data;
+    } catch (error) {
+      return rejectWithValue('Registration failed');
     }
-    
-    return response.json();
   }
 );
 
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async (userData: { email: string; password: string }) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Login failed');
+  async (userData: { email: string; password: string }, { rejectWithValue }) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        return rejectWithValue(data.message);
+      }
+      
+      return data;
+    } catch (error) {
+      return rejectWithValue('Login failed');
     }
-    
-    return response.json();
   }
 );
 
@@ -89,10 +104,15 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
+        // Store in localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(action.payload.user));
+          localStorage.setItem('token', action.payload.token);
+        }
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Registration failed';
+        state.error = action.payload as string || 'Registration failed';
       })
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
@@ -109,7 +129,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Login failed';
+        state.error = action.payload as string || 'Login failed';
       });
   },
 });
