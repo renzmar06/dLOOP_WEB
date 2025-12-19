@@ -8,7 +8,8 @@ import {
   Building,
   Leaf,
   LayoutDashboard,
-  LocateIcon
+  LocateIcon,
+  CreditCard
 } from 'lucide-react';
 
 interface MenuItem {
@@ -44,6 +45,12 @@ export default function Sidebar() {
       icon: LocateIcon,
       label: 'Locations',
       href: '/locations'
+    },
+    {
+      id: 'SubscriptionBilling',
+      icon: CreditCard,
+      label: 'Subscription & Billing',
+      href: '/SubscriptionBilling'
     }
   ];  
 
