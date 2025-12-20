@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { verifyToken, getTokenFromRequest } from '@/lib/auth';
-import Business from '@/models/Business';
+import { ObjectId } from 'mongodb';
+import BusinessVerification from '@/models/BusinessVerification';
 
 interface DecodedToken {
   userId: string;
@@ -24,18 +25,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const { id } = await params;
     await connectDB();
-    const business = await Business.findOne({ 
+    const document = await BusinessVerification.findOne({ 
       _id: id, 
       userId: user.userId 
     });
     
-    if (!business) {
-      return NextResponse.json({ success: false, message: 'Business not found' }, { status: 404 });
+    if (!document) {
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
     
-    return NextResponse.json({ success: true, message: 'Business fetched successfully', data: business });
+    return NextResponse.json(document);
   } catch (error) {
-    return NextResponse.json({ success: false, message: 'Failed to fetch business' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch document' }, { status: 500 });
   }
 }
 
@@ -43,26 +44,26 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const user = await getUser(request);
     if (!user) {
-      return NextResponse.json({ success:false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
-    const businessData = await request.json();
+    const documentData = await request.json();
     await connectDB();
     
-    const business = await Business.findOneAndUpdate(
+    const document = await BusinessVerification.findOneAndUpdate(
       { _id: id, userId: user.userId },
-      businessData,
+      documentData,
       { new: true }
     );
     
-    if (!business) {
-      return NextResponse.json({ success: false, message: 'Business not found' }, { status: 404 });
+    if (!document) {
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
     
-    return NextResponse.json({ success: true, message: 'Business updated successfully', data: business });
+    return NextResponse.json({ message: 'Document updated successfully' });
   } catch (error) {
-    return NextResponse.json({ success: false, message: 'Failed to update business' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update document' }, { status: 500 });
   }
 }
 
@@ -70,22 +71,22 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const user = await getUser(request);
     if (!user) {
-      return NextResponse.json({ success:false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
     await connectDB();
-    const business = await Business.findOneAndDelete({ 
+    const document = await BusinessVerification.findOneAndDelete({ 
       _id: id, 
       userId: user.userId 
     });
     
-    if (!business) {
-      return NextResponse.json({ success: false, message: 'Business not found' }, { status: 404 });
+    if (!document) {
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
-
-    return NextResponse.json({ success: true, message: 'Business deleted successfully' });
+    
+    return NextResponse.json({ message: 'Document deleted successfully' });
   } catch (error) {
-    return NextResponse.json({ success: false, message: 'Failed to delete business' + error }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete document' }, { status: 500 });
   }
 }

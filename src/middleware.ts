@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from './lib/auth';
 
-const protectedRoutes = ['/dashboard', '/business-verification'];
+const protectedRoutes = ['/dashboard','/business-profile', '/business-verification'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
