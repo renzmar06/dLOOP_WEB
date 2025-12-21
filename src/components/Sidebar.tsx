@@ -8,6 +8,7 @@ import {
   Building,
   Leaf,
   LayoutDashboard,
+  Recycle,
   LocateIcon,
   CreditCard
 } from 'lucide-react';
@@ -39,6 +40,12 @@ export default function Sidebar() {
       icon: Shield,
       label: 'Business Verification',
       href: '/business-verification',
+    },
+    {
+      id: 'materials-accepted',
+      icon: Recycle,
+      label: 'materials-accepted',
+      href: '/materials-accepted',
     },
     {
       id: 'Locations',

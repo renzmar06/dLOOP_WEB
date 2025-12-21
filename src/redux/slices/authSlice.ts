@@ -85,8 +85,12 @@ const authSlice = createSlice({
     loadUserFromStorage: (state) => {
       if (typeof window !== 'undefined') {
         const user = localStorage.getItem('user');
-        if (user) {
-          state.user = JSON.parse(user);
+        if (user && user !== 'undefined' && user !== 'null') {
+          try {
+            state.user = JSON.parse(user);
+          } catch {
+            localStorage.removeItem('user');
+          }
         }
       }
     },
