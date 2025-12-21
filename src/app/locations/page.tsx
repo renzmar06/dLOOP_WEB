@@ -349,7 +349,7 @@ export default function LocationsDashboard() {
                                             </button>
                                             <button
                                                 onClick={() => {
-                                                    toast.info('Switch To Location - Coming soon');
+                                                    // toast.info('Switch To Location - Coming soon');
                                                     setActiveDropdown(null);
                                                 }}
                                                 className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
