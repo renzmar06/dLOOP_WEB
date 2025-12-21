@@ -9,6 +9,8 @@ import {
   Leaf,
   LayoutDashboard,
   Recycle,
+  LocateIcon,
+  CreditCard
 } from 'lucide-react';
 
 interface MenuItem {
@@ -44,8 +46,20 @@ export default function Sidebar() {
       icon: Recycle,
       label: 'materials-accepted',
       href: '/materials-accepted',
+    },
+    {
+      id: 'Locations',
+      icon: LocateIcon,
+      label: 'Locations',
+      href: '/locations'
+    },
+    {
+      id: 'SubscriptionBilling',
+      icon: CreditCard,
+      label: 'Subscription & Billing',
+      href: '/SubscriptionBilling'
     }
-  ];
+  ];  
 
   return (
     <aside className="w-64 min-w-[16rem] bg-white border-r border-gray-200 flex flex-col h-full overflow-y-auto">
