@@ -8,6 +8,8 @@ import {
   Building,
   Leaf,
   LayoutDashboard,
+  LocateIcon,
+  CreditCard
 } from 'lucide-react';
 
 interface MenuItem {
@@ -37,8 +39,20 @@ export default function Sidebar() {
       icon: Shield,
       label: 'Business Verification',
       href: '/business-verification',
+    },
+    {
+      id: 'Locations',
+      icon: LocateIcon,
+      label: 'Locations',
+      href: '/locations'
+    },
+    {
+      id: 'SubscriptionBilling',
+      icon: CreditCard,
+      label: 'Subscription & Billing',
+      href: '/SubscriptionBilling'
     }
-  ];
+  ];  
 
   return (
     <aside className="w-64 min-w-[16rem] bg-white border-r border-gray-200 flex flex-col h-full overflow-y-auto">
