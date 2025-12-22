@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         console.log('locationData before create:', JSON.stringify(locationData, null, 2));
         
         const location = await Location.create(locationData);
-        console.log('Created location:', JSON.stringify(location.toObject(), null, 2));
+        console.log('Created location:', JSON.stringify(location, null, 2));
 
         return NextResponse.json(
             {
