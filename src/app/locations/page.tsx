@@ -513,7 +513,7 @@ export default function LocationsDashboard() {
                                             </button>
                                             <button
                                                 onClick={() => {
-                                                    toast.info('Switch To Location - Coming soon');
+                                                    toast('Switch To Location - Coming soon');
                                                     setActiveDropdown(null);
                                                 }}
                                                 className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm"
@@ -701,8 +701,8 @@ export default function LocationsDashboard() {
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-left flex justify-between items-center hover:border-gray-400 transition-colors"
                                             >
                                                 <span className={`text-sm ${formData.managers?.length ? 'text-gray-900' : 'text-gray-500'}`}>
-                                                    {formData.managers?.length > 0
-                                                        ? formData.managers.join(', ')
+                                                    {(formData.managers?.length ?? 0) > 0
+                                                        ? formData.managers?.join(', ')
                                                         : 'Select managers...'}
                                                 </span>
                                                 <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${managerDropdownOpen ? 'rotate-180' : ''}`} />
