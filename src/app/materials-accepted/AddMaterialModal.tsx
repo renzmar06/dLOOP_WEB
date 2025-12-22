@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,8 @@ import { addMaterial } from '@/redux/slices/materialsSlice';
 import { AppDispatch, RootState } from '@/redux/store';
 
 interface NewMaterial {
-  name: string;
+  materialname: string;
+  programType: string;
   materialType: string;
   unitType: string;
   crvPrice: string;
@@ -39,13 +41,24 @@ export default function AddMaterialModal({
 }: AddMaterialModalProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { isLoading } = useSelector((state: RootState) => state.materials);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!newMaterial.materialType) newErrors.materialType = 'Material type is required';
+    if (!newMaterial.unitType) newErrors.unitType = 'Unit type is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSave = async () => {
+    if (!validateForm()) return;
     try {
       await dispatch(addMaterial(newMaterial)).unwrap();
       setShowAddModal(false);
       setNewMaterial({
-        name: "",
+        materialname: "",
+        programType: "",
         materialType: "",
         unitType: "",
         crvPrice: "",
@@ -90,38 +103,61 @@ export default function AddMaterialModal({
               </label>
               <input
                 type="text"
-                value={newMaterial.name}
+                value={newMaterial.materialname}
                 onChange={(e) =>
-                  setNewMaterial({ ...newMaterial, name: e.target.value })
+                  setNewMaterial({ ...newMaterial, materialname: e.target.value })
                 }
                 className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
                 placeholder="Enter material name"
               />
             </div>
 
+            {/* Program Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Program Type
+              </label>
+              <Select
+                value={newMaterial.programType}
+                onValueChange={(value: string) =>
+                  setNewMaterial({ ...newMaterial, programType: value })
+                }
+              >
+                <SelectTrigger className="w-full focus:ring-2 focus:ring-yellow-500">
+                  <SelectValue placeholder="Select program type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bag-drop">Bag and Drop</SelectItem>
+                  <SelectItem value="walk-in-crv">Walk-in CRV</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Type + Unit */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Material Type
+                  Material Type *
                 </label>
                 <Select
                   value={newMaterial.materialType}
-                  onValueChange={(value: string) =>
-                    setNewMaterial({ ...newMaterial, materialType: value })
-                  }
+                  onValueChange={(value: string) => {
+                    setNewMaterial({ ...newMaterial, materialType: value });
+                    if (errors.materialType) setErrors({ ...errors, materialType: '' });
+                  }}
                 >
-                  <SelectTrigger className="w-full focus:ring-2 focus:ring-yellow-500">
+                  <SelectTrigger className={`w-full focus:ring-2 focus:ring-yellow-500 ${
+                    errors.materialType ? 'border-red-500' : ''
+                  }`}>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="can">Can</SelectItem>
-                    <SelectItem value="bottle">Bottle</SelectItem>
+                    <SelectItem value="CRV">CRV</SelectItem>
                     <SelectItem value="scrap">Scrap</SelectItem>
-                    <SelectItem value="plastic">Plastic</SelectItem>
-                    <SelectItem value="glass">Glass</SelectItem>
+                    <SelectItem value="WDS">WDS</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.materialType && <p className="text-red-500 text-sm mt-1">{errors.materialType}</p>}
               </div>
 
               <div>
@@ -130,70 +166,56 @@ export default function AddMaterialModal({
                 </label>
                 <Select
                   value={newMaterial.unitType}
-                  onValueChange={(value: string) =>
-                    setNewMaterial({ ...newMaterial, unitType: value })
-                  }
+                  onValueChange={(value: string) => {
+                    setNewMaterial({ ...newMaterial, unitType: value });
+                    if (errors.unitType) setErrors({ ...errors, unitType: '' });
+                  }}
                 >
-                  <SelectTrigger className="w-full focus:ring-2 focus:ring-yellow-500">
+                  <SelectTrigger className={`w-full focus:ring-2 focus:ring-yellow-500 ${
+                    errors.unitType ? 'border-red-500' : ''
+                  }`}>
                     <SelectValue placeholder="Select unit" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="lb">Pound (lb)</SelectItem>
-                    <SelectItem value="kg">Kilogram (kg)</SelectItem>
-                    <SelectItem value="piece">Per Piece</SelectItem>
+                    <SelectItem value="SC - Seggregated by Count">SC - Seggregated by Count</SelectItem>
+                    <SelectItem value="SW - Seggregated by Weight">SW - Seggregated by Weight</SelectItem>
+                    <SelectItem value="SP - Scrap">SP - Scrap</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.unitType && <p className="text-red-500 text-sm mt-1">{errors.unitType}</p>}
               </div>
             </div>
 
-            {/* CRV Price, Scrap, Per Unit - 3 columns */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Conditional Price Field */}
+            {newMaterial.unitType && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  CRV Price *
+                  {newMaterial.unitType.startsWith('SC') ? 'Per Unit *' :
+                   newMaterial.unitType.startsWith('SW') ? 'CRV Price *' :
+                   newMaterial.unitType.startsWith('SP') ? 'Scrap ($/lb) *' : 'Price *'}
                 </label>
                 <input
                   type="number"
                   step="0.01"
-                  value={newMaterial.crvPrice}
-                  onChange={(e) =>
-                    setNewMaterial({ ...newMaterial, crvPrice: e.target.value })
+                  value={
+                    newMaterial.unitType.startsWith('SC') ? newMaterial.perUnit :
+                    newMaterial.unitType.startsWith('SW') ? newMaterial.crvPrice :
+                    newMaterial.unitType.startsWith('SP') ? newMaterial.scrapPrice : ''
                   }
+                  onChange={(e) => {
+                    if (newMaterial.unitType.startsWith('SC')) {
+                      setNewMaterial({ ...newMaterial, perUnit: e.target.value });
+                    } else if (newMaterial.unitType.startsWith('SW')) {
+                      setNewMaterial({ ...newMaterial, crvPrice: e.target.value });
+                    } else if (newMaterial.unitType.startsWith('SP')) {
+                      setNewMaterial({ ...newMaterial, scrapPrice: e.target.value });
+                    }
+                  }}
                   className="w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-yellow-500"
                   placeholder="0.00"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Scrap ($/lb)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={newMaterial.scrapPrice}
-                  onChange={(e) =>
-                    setNewMaterial({ ...newMaterial, scrapPrice: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-yellow-500"
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Per Unit
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={newMaterial.perUnit}
-                  onChange={(e) =>
-                    setNewMaterial({ ...newMaterial, perUnit: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-yellow-500"
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
+            )}
 
             {/* Min/Max Quantity - 2 columns */}
             <div className="grid grid-cols-2 gap-4">
@@ -254,7 +276,8 @@ export default function AddMaterialModal({
               onClick={() => {
                 setShowAddModal(false);
                 setNewMaterial({
-                  name: "",
+                  materialname: "",
+                  programType: "",
                   materialType: "",
                   unitType: "",
                   crvPrice: "",

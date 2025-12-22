@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import { Material, CreateMaterialRequest } from '@/models/Material';
+import { Material } from '@/models/Material';
 
 export async function GET() {
   try {
@@ -22,38 +22,38 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: CreateMaterialRequest = await request.json();
+    const body = await request.json();
 
-    // Validate required fields
-    if (!body.name || !body.unitType || !body.crvPrice) {
+    if (!body.materialname) {
       return NextResponse.json(
-        { message: 'Missing required fields: name, unitType, crvPrice' },
-        { status: 200 }
+        { message: 'Missing required field: materialname' },
+        { status: 400 }
       );
     }
 
     const db = await connectDB();
     const material: Omit<Material, '_id'> = {
-      name: body.name,
-      materialType: body.materialType,
-      unitType: body.unitType,
-      crvPrice: parseFloat(body.crvPrice),
-      scrapPrice: parseFloat(body.scrapPrice || '0'),
-      perUnit: parseFloat(body.perUnit || '0'),
-      minQuantity: body.minQuantity,
-      maxQuantity: body.maxQuantity,
-      specialNotes: body.specialNotes,
+      materialname: body.materialname,
+      materialType: body.materialType || '',
+      unitType: body.unitType || '',
+      crvPrice: body.crvPrice || 0,
+      scrapPrice: body.scrapPrice || 0,
+      perUnit: body.perUnit || 0,
+      minQuantity: body.minQuantity || 0,
+      maxQuantity: body.maxQuantity || 0,
+      specialNotes: body.specialNotes || '',
+      submaterial: body.submaterial || [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     const result = await db.collection('materials').insertOne(material);
-console.log(result)
+    
     return NextResponse.json({ 
       success: true,
-      message: 'Material added successfully' , 
-      data: { ...material }
-    },{ status: 200 });
+      message: 'Material added successfully',
+      data: material
+    });
 
   } catch (error) {
     console.error('Error adding material:', error);

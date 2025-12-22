@@ -15,7 +15,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-6 pt-0">
+        <main className="flex-1 overflow-auto p-6 ">
           {children}
         </main>
       </div>
