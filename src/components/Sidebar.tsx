@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { logout } from '@/redux/slices/authSlice';
 import {
   Shield,
   Building,
@@ -10,7 +12,8 @@ import {
   LayoutDashboard,
   Recycle,
   LocateIcon,
-  CreditCard
+  CreditCard,
+  LogOut
 } from 'lucide-react';
 
 interface MenuItem {
@@ -22,6 +25,24 @@ interface MenuItem {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
+  
+  const handleLogout = async () => {
+    // Call logout API to clear server-side session
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout API error:', error);
+    }
+    
+    dispatch(logout());
+    router.push('/login');
+  };
+  
   const menuItems: MenuItem[] = [
     {
       id: 'dashboard',
@@ -102,7 +123,16 @@ export default function Sidebar() {
         })}
       </nav>
 
-     
+      {/* Logout Button */}
+      <div className="p-4 border-t border-gray-200">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 cursor-pointer group"
+        >
+          <LogOut size={20} className="transition-colors" />
+          <span className="ml-3 text-sm font-medium">Logout</span>
+        </button>
+      </div>
     </aside>
   );
 }

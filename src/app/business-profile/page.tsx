@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import PreviewModal from "@/components/PreviewModal";
 import Layout from "@/components/Layout";
+import Material from "./Material";
 
 const Input = ({
   label,
@@ -544,6 +545,7 @@ export default function BusinessProfile() {
                   ["social-settings", "Social Media & Settings"],
                   ["locations", "Business Locations"],
                   ["working-hours", "Working Hours"],
+                  ["material", "Material"],
                 ].map(([id, label]) => (
                   <button
                     key={id}
@@ -564,7 +566,6 @@ export default function BusinessProfile() {
             <div className="p-6">
               {activeTab === "business-info" && (
                 <div className="space-y-6 max-w-2xl">
-
                   {/* Business Logo */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -606,7 +607,6 @@ export default function BusinessProfile() {
                       </div>
                     </div>
                   </div>
-                  
                   <Input
                     label="Business Name *"
                     icon={Building}
@@ -624,6 +624,34 @@ export default function BusinessProfile() {
                     value={form.businessType}
                     onChange={(e) => onChange("businessType", e.target.value)}
                     placeholder="e.g., Restaurant, Retail, Service"
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      label="Phone *"
+                      icon={Phone}
+                      iconColor="text-green-500"
+                      value={form.phone}
+                      onChange={(e) => onChange("phone", e.target.value)}
+                      placeholder="Phone number"
+                    />
+                    <Input
+                      label="Email *"
+                      icon={Mail}
+                      iconColor="text-red-500"
+                      value={form.email}
+                      onChange={(e) => onChange("email", e.target.value)}
+                      placeholder="Business email"
+                    />
+                  </div>
+
+                  <Input
+                    label="Website"
+                    icon={Globe}
+                    iconColor="text-purple-500"
+                    value={form.website}
+                    onChange={(e) => onChange("website", e.target.value)}
+                    placeholder="https://website.com"
                   />
 
                   <RichTextEditor
@@ -683,34 +711,6 @@ export default function BusinessProfile() {
 
               {activeTab === "locations" && (
                 <div className="space-y-6 max-w-2xl">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      label="Phone *"
-                      icon={Phone}
-                      iconColor="text-green-500"
-                      value={form.phone}
-                      onChange={(e) => onChange("phone", e.target.value)}
-                      placeholder="Phone number"
-                    />
-                    <Input
-                      label="Email *"
-                      icon={Mail}
-                      iconColor="text-red-500"
-                      value={form.email}
-                      onChange={(e) => onChange("email", e.target.value)}
-                      placeholder="Business email"
-                    />
-                  </div>
-
-                  <Input
-                    label="Website"
-                    icon={Globe}
-                    iconColor="text-purple-500"
-                    value={form.website}
-                    onChange={(e) => onChange("website", e.target.value)}
-                    placeholder="https://website.com"
-                  />
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                       <Home className="w-4 h-4 text-blue-500" />
@@ -920,6 +920,8 @@ export default function BusinessProfile() {
                   </div>
                 </div>
               )}
+
+              {activeTab === "material" && <Material />}
             </div>
           </div>
 

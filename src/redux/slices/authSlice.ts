@@ -76,10 +76,12 @@ const authSlice = createSlice({
     },
     logout: (state) => {
       state.user = null;
-        // Clear localStorage
+      // Clear localStorage
       if (typeof window !== 'undefined') {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+        // Clear cookies
+        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       }
     },
     loadUserFromStorage: (state) => {

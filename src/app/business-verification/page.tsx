@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import { AppDispatch, RootState } from "@/redux/store";
 import toast, { Toaster } from "react-hot-toast";
 import {
@@ -27,6 +28,7 @@ import {
 
 export default function BusinessVerificationPage() {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const { documents, isLoading } = useSelector(
     (state: RootState) => state.businessVerification
   );
@@ -474,6 +476,7 @@ export default function BusinessVerificationPage() {
                       !getDocumentByType("business-license") ||
                       !getDocumentByType("proof-address")
                     }
+                    onClick={() => router.push('/SubscriptionBilling')}
                   >
                     Go to Subscription
                   </Button>
