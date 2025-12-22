@@ -17,6 +17,11 @@ import {
   Layers,
   Save,
   Leaf,
+  ChevronDown,
+  ChevronUp,
+  Box,
+  FileText,
+  ShoppingBag,
 } from "lucide-react";
 
 import { Switch } from "@/components/ui/switch";
@@ -28,6 +33,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import Layout from '@/components/Layout';
 import AddMaterialModal from './AddMaterialModal';
 
@@ -43,15 +54,19 @@ type Category = {
 
 /* -------------------- DATA -------------------- */
 const categories: Category[] = [
-  { id: 1, name: "Aluminum", description: "CRV aluminum cans and containers", icon: Recycle, bg: "bg-yellow-100 text-yellow-700",active:"2" },
-  { id: 2, name: "Plastic (PET #1)", description: "PET plastic bottles and containers", icon: Droplet, bg: "bg-blue-100 text-blue-700",active:"4" },
-  { id: 3, name: "Plastic (HDPE #2)", description: "HDPE plastic bottles and containers", icon: Droplet, bg: "bg-sky-100 text-sky-700",active:"2" },
-  { id: 4, name: "Glass", description: "Glass bottles and containers", icon: Glasses, bg: "bg-orange-100 text-orange-700",active:"2" },
-  { id: 5, name: "Ferrous Metals", description: "Steel, iron, magnetic metals", icon: Layers, bg: "bg-gray-200 text-gray-700",active:"2" },
-  { id: 6, name: "Non-Ferrous Metals", description: "Copper, brass, aluminum scrap", icon: Bolt, bg: "bg-red-100 text-red-700",active:"2" },
-  { id: 7, name: "Electronics / E-Waste", description: "Computers, phones, appliances", icon: Cpu, bg: "bg-purple-100 text-purple-700",active:"2" },
-  { id: 8, name: "Cardboard / OCC", description: "Old corrugated containers", icon: Package, bg: "bg-amber-100 text-amber-700",active:"2" },
-  { id: 9, name: "Buyback Program", description: "Custom material buyback", icon: DollarSign, bg: "bg-emerald-100 text-emerald-700",active:"2" },
+  { id: 1, name: "AL - Aluminum", description: "CRV aluminum cans and containers", icon: Recycle, bg: "bg-yellow-100 text-yellow-700",active:"2" },
+  { id: 2, name: "PET - PET Plastic", description: "PET plastic bottles and containers", icon: Droplet, bg: "bg-blue-100 text-blue-700",active:"4" },
+  { id: 3, name: "HDPE - HDPE Plastic", description: "HDPE plastic bottles and containers", icon: Droplet, bg: "bg-sky-100 text-sky-700",active:"2" },
+  { id: 4, name: "GLASS - Glass", description: "Glass bottles and containers", icon: Glasses, bg: "bg-orange-100 text-orange-700",active:"2" },
+  { id: 5, name: "PVC - PVC Plastic", description: "Steel, iron, magnetic metals", icon: Layers, bg: "bg-gray-200 text-gray-700",active:"2" },
+  { id: 6, name: "LDPE - LDPE Plastic", description: "Copper, brass, aluminum scrap", icon: Bolt, bg: "bg-red-100 text-red-700",active:"2" },
+  { id: 7, name: "PP - PP Plastic", description: "Computers, phones, appliances", icon: Cpu, bg: "bg-purple-100 text-purple-700",active:"2" },
+  { id: 8, name: "PS - PS Plastic", description: "Old corrugated containers", icon: Package, bg: "bg-amber-100 text-amber-700",active:"2" },
+  { id: 9, name: "Bi-Metal", description: "Custom material buyback", icon: DollarSign, bg: "bg-emerald-100 text-emerald-700",active:"2" },
+  { id: 10, name: "Bag-in-Box", description: "Custom material buyback", icon: Box, bg: "bg-teal-100 text-teal-700",active:"2" },
+  { id: 11, name: "Paper Carton", description: "Custom material buyback", icon: FileText, bg: "bg-indigo-100 text-indigo-700",active:"2" },
+  { id: 12, name: "Multi-Layer Pouch", description: "Custom material buyback", icon: Layers, bg: "bg-pink-100 text-pink-700",active:"2" },
+  { id: 13, name: "Plastic Pouch", description: "Custom material buyback", icon: ShoppingBag, bg: "bg-cyan-100 text-cyan-700",active:"2" },
 ];
 
 /* -------------------- COMPONENT -------------------- */
@@ -64,11 +79,11 @@ export default function MaterialsAcceptedMain() {
     { id: 2, title: "Aluminum Cans (CW)", description: "Commingled weight", enabled: true }
   ]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showRenameModal, setShowRenameModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [newMaterial, setNewMaterial] = useState({
-    name: '',
+    materialname: '',
+    programType: '',
     materialType: '',
     unitType: '',
     crvPrice: '',
@@ -78,6 +93,9 @@ export default function MaterialsAcceptedMain() {
     maxQuantity: '',
     specialNotes: ''
   });
+  const [editingSubtype, setEditingSubtype] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [openAccordion, setOpenAccordion] = useState<string>('');
 
   return (
     <Layout>
@@ -114,9 +132,9 @@ export default function MaterialsAcceptedMain() {
       </div>
     </div>
 
-      <div className="grid grid-cols-2 gap-6 p-6 flex-1 overflow-y-auto">
+      <div className="p-6 flex-1 overflow-y-auto">
 
-      {/* ================= LEFT: MATERIAL CATEGORIES ================= */}
+      {/* ================= MATERIAL CATEGORIES ================= */}
       <div>
         <h2 className="text-sm font-semibold text-gray-700 mb-4">
             <Leaf className="w-4 h-4 inline mr-2 text-yellow-600" />
@@ -128,112 +146,93 @@ export default function MaterialsAcceptedMain() {
             const Icon = cate.icon;
             const isEnabled = enabled[cate.id] || false;
             return (
-              <div
-                key={cate.id}
-                className={`flex items-center justify-between p-4 rounded-xl border bg-white shadow-sm hover:shadow-md transition ${
-                  isEnabled ? 'border-yellow-400 shadow-yellow-100' : ''
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 flex items-center justify-center rounded-lg ${cate.bg}`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900">{cate.name}</h3>
-                    <p className="text-xs text-gray-500">{cate.description}</p>
-                    <h3 className="text-xs mt-2 text-yellow-700">{cate.active} active</h3>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Switch
-                    checked={isEnabled}
-                    onCheckedChange={(v) => setEnabled({ ...enabled, [cate.id]: v })}
-                  />
-
-                  <div className="relative">
-                    <MoreVertical 
-                      className="w-4 h-4 text-gray-500 cursor-pointer" 
-                      onClick={() => setOpenDropdown(openDropdown === cate.id ? null : cate.id)}
-                    />
-                    {openDropdown === cate.id && (
-                      <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-lg z-50">
-                        <button 
-                          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 w-full text-left"
-                          onClick={() => {
-                            setSelectedCategory(cate);
-                            setShowRenameModal(true);
-                            setOpenDropdown(null);
-                          }}
-                        >
-                          <Pencil className="w-4 h-4" /> Rename
-                        </button>
-                        <button 
-                          className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 w-full text-left"
-                          onClick={() => {
-                            console.log('Duplicate', cate.name);
-                            setOpenDropdown(null);
-                          }}
-                        >
-                          <Copy className="w-4 h-4" /> Duplicate
-                        </button>
-                        <button 
-                          className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
-                          onClick={() => {
-                            console.log('Delete', cate.name);
-                            setOpenDropdown(null);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" /> Delete
-                        </button>
+              <Accordion key={cate.id} type="single" collapsible className="w-full" value={openAccordion} onValueChange={setOpenAccordion}>
+                <AccordionItem value={`category-${cate.id}`} className="border-none">
+                  <div className={`flex items-center justify-between p-4 rounded-xl border bg-white shadow-sm hover:shadow-md transition ${
+                    isEnabled ? 'border-yellow-400 shadow-yellow-100' : ''
+                  }`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 flex items-center justify-center rounded-lg ${cate.bg}`}>
+                        <Icon className="w-5 h-5" />
                       </div>
-                    )}
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900">{cate.name}</h3>
+                        <p className="text-xs text-gray-500">{cate.description}</p>
+                        <h3 className="text-xs mt-2 text-yellow-700">{cate.active} active</h3>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={isEnabled}
+                        onCheckedChange={(v) => setEnabled({ ...enabled, [cate.id]: v })}
+                      />
+                      <Button 
+                        size="sm" 
+                        className={`text-white text-xs px-2 py-1 ${
+                          openAccordion === `category-${cate.id}` 
+                            ? 'bg-yellow-500 hover:bg-yellow-600' 
+                            : 'bg-gray-400 cursor-not-allowed'
+                        }`}
+                        disabled={openAccordion !== `category-${cate.id}`}
+                        onClick={() => {
+                          if (openAccordion === `category-${cate.id}`) {
+                            const newId = Math.max(...subtypes.map(s => s.id)) + 1;
+                            setSubtypes([...subtypes, {
+                              id: newId,
+                              title: `${cate.name} Subtype ${newId}`,
+                              description: "New subtype",
+                              enabled: false
+                            }]);
+                          }
+                        }}
+                      >
+                        <Plus className="w-3 h-3" /> 
+                      </Button>
+                      <AccordionTrigger className="p-0 h-4 w-4 hover:no-underline" />
+                    </div>
                   </div>
-                </div>
-              </div>
+                  
+                  <AccordionContent className="pt-4">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-sm font-semibold text-gray-700">{cate.name} Subtypes</h3>
+                      </div>
+                      
+                      {subtypes.map((subtype) => (
+                        <SubtypeCard
+                          key={subtype.id}
+                          title={subtype.title}
+                          description={subtype.description}
+                          enabled={subtype.enabled}
+                          isEditing={editingSubtype === subtype.id}
+                          editTitle={editTitle}
+                          onToggle={(enabled) => {
+                            setSubtypes(subtypes.map(s => 
+                              s.id === subtype.id ? { ...s, enabled } : s
+                            ));
+                          }}
+                          onEditStart={() => {
+                            setEditingSubtype(subtype.id);
+                            setEditTitle(subtype.title);
+                          }}
+                          onEditSave={() => {
+                            setSubtypes(subtypes.map(s => 
+                              s.id === subtype.id ? { ...s, title: editTitle } : s
+                            ));
+                            setEditingSubtype(null);
+                          }}
+                          onEditCancel={() => setEditingSubtype(null)}
+                          onTitleChange={setEditTitle}
+                        />
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             );
           })}
         </div>
-      </div>
-
-      {/* ================= RIGHT: ALUMINUM ================= */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-gray-700">
-            <Recycle className="w-4 h-4 inline mr-2 text-yellow-600" />
-            Aluminum
-          </h2>
-          <Button 
-            size="sm" 
-            className="bg-yellow-500 hover:bg-yellow-600 text-white"
-            onClick={() => {
-              const newId = Math.max(...subtypes.map(s => s.id)) + 1;
-              setSubtypes([...subtypes, {
-                id: newId,
-                title: `Aluminum Subtype ${newId}`,
-                description: "New subtype",
-                enabled: false
-              }]);
-            }}
-          >
-            <Plus className="w-4 h-4 mr-1" /> Add Subtype
-          </Button>
-        </div>
-
-        {/* Dynamic Subtypes */}
-        {subtypes.map((subtype) => (
-          <SubtypeCard
-            key={subtype.id}
-            title={subtype.title}
-            description={subtype.description}
-            enabled={subtype.enabled}
-            onToggle={(enabled) => {
-              setSubtypes(subtypes.map(s => 
-                s.id === subtype.id ? { ...s, enabled } : s
-              ));
-            }}
-          />
-        ))}
       </div>
     </div>
 
@@ -243,86 +242,6 @@ export default function MaterialsAcceptedMain() {
       newMaterial={newMaterial}
       setNewMaterial={setNewMaterial}
     />
-
-{/* Edit Category Modal */}
-{showRenameModal && selectedCategory && (
-  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
-      
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b">
-        <h2 className="text-xl font-bold text-gray-900">
-          Edit Category
-        </h2>
-        <button
-          onClick={() => {
-            setShowRenameModal(false);
-            setSelectedCategory(null);
-          }}
-          className="text-gray-600 hover:text-black"
-        >
-          ✕
-        </button>
-      </div>
-
-      {/* Body */}
-      <div className="p-6">
-        <div className="space-y-4">
-          
-          {/* Category Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category Name *
-            </label>
-            <input
-              type="text"
-              defaultValue={selectedCategory.name}
-              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              placeholder="Enter category name"
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              rows={3}
-              defaultValue={selectedCategory.description}
-              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-              placeholder="Enter description"
-            />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-3 mt-6">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setShowRenameModal(false);
-              setSelectedCategory(null);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            className="bg-yellow-500 hover:bg-yellow-600 text-white"
-            onClick={() => {
-              console.log("Save category changes");
-              setShowRenameModal(false);
-              setSelectedCategory(null);
-            }}
-          >
-            Save Changes
-          </Button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
       </div>
     </Layout>
   );
@@ -333,12 +252,24 @@ function SubtypeCard({
   title,
   description,
   enabled,
+  isEditing,
+  editTitle,
   onToggle,
+  onEditStart,
+  onEditSave,
+  onEditCancel,
+  onTitleChange,
 }: {
   title: string;
   description: string;
   enabled: boolean;
+  isEditing?: boolean;
+  editTitle?: string;
   onToggle: (v: boolean) => void;
+  onEditStart?: () => void;
+  onEditSave?: () => void;
+  onEditCancel?: () => void;
+  onTitleChange?: (title: string) => void;
 }) {
   const [showConfig, setShowConfig] = useState(false);
   
@@ -349,6 +280,7 @@ function SubtypeCard({
     }
   };
   const [config, setConfig] = useState({
+    programType: '',
     materialType: '',
     unitType: '',
     crvPrice: '',
@@ -369,7 +301,21 @@ function SubtypeCard({
           <Switch checked={enabled} onCheckedChange={handleToggle} />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => onTitleChange?.(e.target.value)}
+                className="text-sm font-semibold text-gray-900 bg-transparent border border-yellow-400 focus:outline-none"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onEditSave?.();
+                  if (e.key === 'Escape') onEditCancel?.();
+                }}
+                autoFocus
+              />
+            ) : (
+              <h3 className="text-sm font-semibold text-gray-900 cursor-pointer" onClick={onEditStart}>{title}</h3>
+            )}
             <p className="text-xs text-gray-500">{description}</p>
           </div>
         </div>
@@ -397,10 +343,13 @@ function SubtypeCard({
 
     <div className="p-5 space-y-5">
       
+      {/* Program Type */}
+    
+
       {/* Material Type */}
       <div>
         <label className="block text-sm font-medium text-gray-800 mb-1">
-          Material Type
+          Material Type *
         </label>
         <Select
           value={config.materialType}
@@ -409,12 +358,31 @@ function SubtypeCard({
           }
         >
           <SelectTrigger className="w-full h-11 focus:ring-2 focus:ring-yellow-500">
-            <SelectValue placeholder="CRV (California Redemption)" />
+            <SelectValue placeholder="Select Material Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="crv">CRV (California Redemption)</SelectItem>
-            <SelectItem value="Scrap Metal/Material">Scrap Metal/Material</SelectItem>
-            <SelectItem value="Mixed (CRV + Scrap)">Mixed (CRV + Scrap)</SelectItem>
+            <SelectItem value="crv">CRV</SelectItem>
+            <SelectItem value="Scrap">Scrap </SelectItem>
+            <SelectItem value="WDS">WDS</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+        <div>
+        <label className="block text-sm font-medium text-gray-800 mb-1">
+          Program Type
+        </label>
+        <Select
+          value={config.programType}
+          onValueChange={(value: string) =>
+            setConfig({ ...config, programType: value })
+          }
+        >
+          <SelectTrigger className="w-full h-11 focus:ring-2 focus:ring-yellow-500">
+            <SelectValue placeholder="Select Program Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="bag-drop">Bag and Drop</SelectItem>
+            <SelectItem value="walk-in-crv">Walk-in CRV</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -422,7 +390,7 @@ function SubtypeCard({
       {/* Unit Type */}
       <div>
         <label className="block text-sm font-medium text-gray-800 mb-1">
-          Unit Type
+          Unit Type *
         </label>
         <Select
           value={config.unitType}
@@ -431,63 +399,45 @@ function SubtypeCard({
           }
         >
           <SelectTrigger className="w-full h-11 focus:ring-2 focus:ring-yellow-500">
-            <SelectValue placeholder="CW (Commingled Weight)" />
+            <SelectValue placeholder="Select Unit Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="cw">CW (Commingled Weight)</SelectItem>
-            <SelectItem value="sw">SW (Segregated Weight)</SelectItem>
-            <SelectItem value="UNIT (Count-Based)">UNIT (Count-Based)</SelectItem>
+            <SelectItem value="SC">SC - Segregated by Count</SelectItem>
+            <SelectItem value="SW">SW - Segregated by Weight</SelectItem>
+            <SelectItem value="SP">SP - Scrap</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Prices */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* Conditional Price Field */}
+      {config.unitType && (
         <div>
           <label className="block text-sm font-medium text-gray-800 mb-1">
-            CRV Price
+            {config.unitType === 'SC' ? 'Per Unit *' :
+             config.unitType === 'SW' ? 'CRV Price *' :
+             config.unitType === 'SP' ? 'Scrap ($/lb) *' : 'Price *'}
           </label>
           <input
             type="number"
-            value={config.crvPrice}
-            onChange={(e) =>
-              setConfig({ ...config, crvPrice: e.target.value })
+            value={
+              config.unitType === 'SC' ? config.perUnit :
+              config.unitType === 'SW' ? config.crvPrice :
+              config.unitType === 'SP' ? config.scrapPrice : ''
             }
+            onChange={(e) => {
+              if (config.unitType === 'SC') {
+                setConfig({ ...config, perUnit: e.target.value });
+              } else if (config.unitType === 'SW') {
+                setConfig({ ...config, crvPrice: e.target.value });
+              } else if (config.unitType === 'SP') {
+                setConfig({ ...config, scrapPrice: e.target.value });
+              }
+            }}
             className="w-full h-11 px-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow-500"
-            placeholder="0.05"
+            placeholder="0.00"
           />
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-800 mb-1">
-            Scrap ($/lb)
-          </label>
-          <input
-            type="number"
-            value={config.scrapPrice}
-            onChange={(e) =>
-              setConfig({ ...config, scrapPrice: e.target.value })
-            }
-            className="w-full h-11 px-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow-500"
-            placeholder="0.65"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-800 mb-1">
-            Per Unit
-          </label>
-          <input
-            type="number"
-            value={config.perUnit}
-            onChange={(e) =>
-              setConfig({ ...config, perUnit: e.target.value })
-            }
-            className="w-full h-11 px-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow-500"
-            placeholder="0"
-          />
-        </div>
-      </div>
+      )}
 
       {/* Min / Max Quantity */}
       <div className="grid grid-cols-2 gap-4">

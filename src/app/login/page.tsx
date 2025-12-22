@@ -36,7 +36,7 @@ export default function Login() {
             <img src="/images/logo.png" alt="Logo" className="h-16 w-auto mr-2" />
           </div>
 
-          <h2 className="text-3xl font-bold mb-2 text-gray-900">Welcome to CycleIQ</h2>
+          <h2 className="text-3xl font-bold mb-2 text-gray-900">Welcome to dloop</h2>
           <p className="text-gray-500 mb-8">Please login to your account</p>
 
           <form onSubmit={handleSubmit}>

@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 interface Material {
   id: number;
-  name: string;
+  materialname: string;
   materialType: string;
   unitType: string;
   crvPrice: string;

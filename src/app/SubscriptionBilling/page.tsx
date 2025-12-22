@@ -103,7 +103,7 @@ export default function SubscriptionBillingPage() {
                     </header>
 
                     {/* Current Plan */}
-                    <div className="bg-teal-500 rounded-xl p-6 text-white">
+                    {/* <div className="bg-teal-500 rounded-xl p-6 text-white">
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-3">
                                 <Crown className="w-8 h-8" />
@@ -120,12 +120,39 @@ export default function SubscriptionBillingPage() {
                                 Change Plan
                             </button>
                         </div>
-                    </div>
+                    </div> */}
+
+                    
 
                     {/* Choose Your Plan */}
                     <div>
                         <h2 className="text-xl font-bold mb-2">Choose Your Plan</h2>
                         <p className="text-gray-600 mb-6">Select the plan that best fits your business needs</p>
+                        <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="text-lg font-bold flex items-center gap-2 mb-6">
+                            <Settings className="w-5 h-5 text-gray-600" />
+                            Manage Subscription
+                        </h3>
+
+                        <div className="flex gap-4 mb-6">
+                            <button
+                                onClick={() => setShowPauseModal(true)}
+                                className="flex items-center gap-2 px-6 py-3 border border-orange-300 text-orange-600 rounded-lg font-semibold hover:bg-orange-50 transition"
+                            >
+                                <AlertTriangle className="w-4 h-4" />
+                                Pause Subscription
+                            </button>
+                            <button
+                                onClick={() => setShowCancelModal(true)}
+                                className="flex items-center gap-2 px-6 py-3 border border-red-300 text-red-600 rounded-lg font-semibold hover:bg-red-50 transition"
+                            >
+                                <X className="w-4 h-4" />
+                                Cancel Subscription
+                            </button>
+                        </div>
+
+                        <p className="text-center text-gray-600 text-sm">Need help? Contact our support team</p>
+                    </div>
 
                         <div className="grid md:grid-cols-3 gap-6">
                             {plans.map((plan) => (
@@ -172,6 +199,7 @@ export default function SubscriptionBillingPage() {
                             ))}
                         </div>
                     </div>
+                    
 
                     {/* Payment Method & Usage */}
                     <div className="grid md:grid-cols-2 gap-6">
@@ -286,31 +314,7 @@ export default function SubscriptionBillingPage() {
                     </div>
 
                     {/* Manage Subscription */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h3 className="text-lg font-bold flex items-center gap-2 mb-6">
-                            <Settings className="w-5 h-5 text-gray-600" />
-                            Manage Subscription
-                        </h3>
-
-                        <div className="flex gap-4 mb-6">
-                            <button
-                                onClick={() => setShowPauseModal(true)}
-                                className="flex items-center gap-2 px-6 py-3 border border-orange-300 text-orange-600 rounded-lg font-semibold hover:bg-orange-50 transition"
-                            >
-                                <AlertTriangle className="w-4 h-4" />
-                                Pause Subscription
-                            </button>
-                            <button
-                                onClick={() => setShowCancelModal(true)}
-                                className="flex items-center gap-2 px-6 py-3 border border-red-300 text-red-600 rounded-lg font-semibold hover:bg-red-50 transition"
-                            >
-                                <X className="w-4 h-4" />
-                                Cancel Subscription
-                            </button>
-                        </div>
-
-                        <p className="text-center text-gray-600 text-sm">Need help? Contact our support team</p>
-                    </div>
+                    
 
                     {/* Pause Subscription Modal */}
                     {showPauseModal && (
