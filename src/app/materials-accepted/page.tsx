@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '@/redux/store';
+import { fetchMaterials, deleteSubmaterial } from '@/redux/slices/materialsSlice';
+import toast, { Toaster } from 'react-hot-toast';
 import {
   MoreVertical,
   Pencil,
@@ -42,46 +46,35 @@ import {
 import Layout from '@/components/Layout';
 import AddMaterialModal from './AddMaterialModal';
 
-/* -------------------- TYPES -------------------- */
-type Category = {
-  id: number;
-  name: string;
-  description: string;
-  icon: any;
-  bg: string;
-  active: string;
-};
 
-/* -------------------- DATA -------------------- */
-const categories: Category[] = [
-  { id: 1, name: "AL - Aluminum", description: "CRV aluminum cans and containers", icon: Recycle, bg: "bg-yellow-100 text-yellow-700",active:"2" },
-  { id: 2, name: "PET - PET Plastic", description: "PET plastic bottles and containers", icon: Droplet, bg: "bg-blue-100 text-blue-700",active:"4" },
-  { id: 3, name: "HDPE - HDPE Plastic", description: "HDPE plastic bottles and containers", icon: Droplet, bg: "bg-sky-100 text-sky-700",active:"2" },
-  { id: 4, name: "GLASS - Glass", description: "Glass bottles and containers", icon: Glasses, bg: "bg-orange-100 text-orange-700",active:"2" },
-  { id: 5, name: "PVC - PVC Plastic", description: "Steel, iron, magnetic metals", icon: Layers, bg: "bg-gray-200 text-gray-700",active:"2" },
-  { id: 6, name: "LDPE - LDPE Plastic", description: "Copper, brass, aluminum scrap", icon: Bolt, bg: "bg-red-100 text-red-700",active:"2" },
-  { id: 7, name: "PP - PP Plastic", description: "Computers, phones, appliances", icon: Cpu, bg: "bg-purple-100 text-purple-700",active:"2" },
-  { id: 8, name: "PS - PS Plastic", description: "Old corrugated containers", icon: Package, bg: "bg-amber-100 text-amber-700",active:"2" },
-  { id: 9, name: "Bi-Metal", description: "Custom material buyback", icon: DollarSign, bg: "bg-emerald-100 text-emerald-700",active:"2" },
-  { id: 10, name: "Bag-in-Box", description: "Custom material buyback", icon: Box, bg: "bg-teal-100 text-teal-700",active:"2" },
-  { id: 11, name: "Paper Carton", description: "Custom material buyback", icon: FileText, bg: "bg-indigo-100 text-indigo-700",active:"2" },
-  { id: 12, name: "Multi-Layer Pouch", description: "Custom material buyback", icon: Layers, bg: "bg-pink-100 text-pink-700",active:"2" },
-  { id: 13, name: "Plastic Pouch", description: "Custom material buyback", icon: ShoppingBag, bg: "bg-cyan-100 text-cyan-700",active:"2" },
-];
+/* -------------------- TYPES -------------------- */
+interface NewMaterial {
+  materialname: string;
+  programType: string;
+  materialType: string;
+  unitType: string;
+  crvPrice: string;
+  scrapPrice: string;
+  perUnit: string;
+  minQuantity: string;
+  maxQuantity: string;
+  specialNotes: string;
+  submaterial: any[];
+}
+
+
+
+
 
 /* -------------------- COMPONENT -------------------- */
 export default function MaterialsAcceptedMain() {
-  const [enabled, setEnabled] = useState<Record<number, boolean>>({});
-  const [aluminumSW, setAluminumSW] = useState(true);
-  const [aluminumCW, setAluminumCW] = useState(true);
-  const [subtypes, setSubtypes] = useState([
-    { id: 1, title: "Aluminum Cans (SW)", description: "Segregated weight", enabled: true },
-    { id: 2, title: "Aluminum Cans (CW)", description: "Commingled weight", enabled: true }
-  ]);
+  const dispatch = useDispatch<AppDispatch>();
+  const { materials, isLoading, error } = useSelector((state: RootState) => state.materials);
+  
+
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
-  const [newMaterial, setNewMaterial] = useState({
+
+  const [newMaterial, setNewMaterial] = useState<NewMaterial>({
     materialname: '',
     programType: '',
     materialType: '',
@@ -91,11 +84,18 @@ export default function MaterialsAcceptedMain() {
     perUnit: '',
     minQuantity: '',
     maxQuantity: '',
-    specialNotes: ''
+    specialNotes: '',
+    submaterial: []
   });
-  const [editingSubtype, setEditingSubtype] = useState<number | null>(null);
+  const [editingSubtype, setEditingSubtype] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
+  const [materialSubmaterials, setMaterialSubmaterials] = useState<Record<string, any[]>>({});
   const [openAccordion, setOpenAccordion] = useState<string>('');
+
+  // Fetch materials on component mount
+  useEffect(() => {
+    dispatch(fetchMaterials());
+  }, [dispatch]);
 
   return (
     <Layout>
@@ -134,105 +134,165 @@ export default function MaterialsAcceptedMain() {
 
       <div className="p-6 flex-1 overflow-y-auto">
 
-      {/* ================= MATERIAL CATEGORIES ================= */}
+
+
+      {/* ================= DATABASE MATERIALS ================= */}
       <div>
         <h2 className="text-sm font-semibold text-gray-700 mb-4">
-            <Leaf className="w-4 h-4 inline mr-2 text-yellow-600" />
-          Material Categories  <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">2 Active</span>
+          <Leaf className="w-4 h-4 inline mr-2 text-yellow-600" />
+          Materials from Database
+          {materials.length > 0 && (
+            <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
+              {materials.length} Found
+            </span>
+          )}
         </h2>
 
-        <div className="space-y-3">
-          {categories.map((cate) => {
-            const Icon = cate.icon;
-            const isEnabled = enabled[cate.id] || false;
-            return (
-              <Accordion key={cate.id} type="single" collapsible className="w-full" value={openAccordion} onValueChange={setOpenAccordion}>
-                <AccordionItem value={`category-${cate.id}`} className="border-none">
-                  <div className={`flex items-center justify-between p-4 rounded-xl border bg-white shadow-sm hover:shadow-md transition ${
-                    isEnabled ? 'border-yellow-400 shadow-yellow-100' : ''
-                  }`}>
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 flex items-center justify-center rounded-lg ${cate.bg}`}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-900">{cate.name}</h3>
-                        <p className="text-xs text-gray-500">{cate.description}</p>
-                        <h3 className="text-xs mt-2 text-yellow-700">{cate.active} active</h3>
-                      </div>
-                    </div>
+        {error && (
+          <div className="text-center py-8">
+            <div className="text-red-500">Error: {error}</div>
+          </div>
+        )}
 
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={isEnabled}
-                        onCheckedChange={(v) => setEnabled({ ...enabled, [cate.id]: v })}
-                      />
-                      <Button 
-                        size="sm" 
-                        className={`text-white text-xs px-2 py-1 ${
-                          openAccordion === `category-${cate.id}` 
-                            ? 'bg-yellow-500 hover:bg-yellow-600' 
-                            : 'bg-gray-400 cursor-not-allowed'
-                        }`}
-                        disabled={openAccordion !== `category-${cate.id}`}
-                        onClick={() => {
-                          if (openAccordion === `category-${cate.id}`) {
-                            const newId = Math.max(...subtypes.map(s => s.id)) + 1;
-                            setSubtypes([...subtypes, {
-                              id: newId,
-                              title: `${cate.name} Subtype ${newId}`,
-                              description: "New subtype",
-                              enabled: false
-                            }]);
-                          }
-                        }}
-                      >
-                        <Plus className="w-3 h-3" /> 
-                      </Button>
-                      <AccordionTrigger className="p-0 h-4 w-4 hover:no-underline" />
-                    </div>
-                  </div>
-                  
-                  <AccordionContent className="pt-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-sm font-semibold text-gray-700">{cate.name} Subtypes</h3>
+        {!isLoading && !error && materials.length === 0 && (
+          <div className="text-center py-8">
+            <div className="text-gray-500">No materials found in database</div>
+          </div>
+        )}
+
+        {!isLoading && materials.length > 0 && (
+          <div className="space-y-3">
+            {materials.map((material) => {
+              const isEnabled = true;
+              return (
+                <Accordion key={material._id} type="single" collapsible className="w-full" value={openAccordion} onValueChange={setOpenAccordion}>
+                  <AccordionItem value={`material-${material._id}`} className="border-none">
+                    <div className={`flex items-center justify-between p-4 rounded-xl border bg-white shadow-sm hover:shadow-md transition ${
+                      isEnabled ? ' shadow-white' : ''
+                    }`}>
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-yellow-100 text-yellow-700">
+                          <Package className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-gray-900">{material.materialname}</h3>
+                          <p className="text-xs text-gray-500">{material.materialType} - {material.unitType}</p>
+                        
+                          {[...(material.submaterial || []), ...(materialSubmaterials[material._id!] || [])].length > 0 && (
+                            <span className="text-xs mt-1 text-yellow-700">
+                              {[...(material.submaterial || []), ...(materialSubmaterials[material._id!] || [])].length} active
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      
-                      {subtypes.map((subtype) => (
-                        <SubtypeCard
-                          key={subtype.id}
-                          title={subtype.title}
-                          description={subtype.description}
-                          enabled={subtype.enabled}
-                          isEditing={editingSubtype === subtype.id}
-                          editTitle={editTitle}
-                          onToggle={(enabled) => {
-                            setSubtypes(subtypes.map(s => 
-                              s.id === subtype.id ? { ...s, enabled } : s
-                            ));
-                          }}
-                          onEditStart={() => {
-                            setEditingSubtype(subtype.id);
-                            setEditTitle(subtype.title);
-                          }}
-                          onEditSave={() => {
-                            setSubtypes(subtypes.map(s => 
-                              s.id === subtype.id ? { ...s, title: editTitle } : s
-                            ));
-                            setEditingSubtype(null);
-                          }}
-                          onEditCancel={() => setEditingSubtype(null)}
-                          onTitleChange={setEditTitle}
-                        />
-                      ))}
+
+                      <div className="flex items-center gap-3">
+                        <Switch checked={isEnabled} onCheckedChange={() => {}} />
+                        <AccordionTrigger className="p-0 h-4 w-4 hover:no-underline" />
+                      </div>
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            );
-          })}
-        </div>
+                    
+                    <AccordionContent className="pt-4">
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-sm font-semibold text-gray-700">{material.materialname} Submaterials</h3>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-3 py-1"
+                              onClick={() => {
+                                const materialId = material._id!;
+                                const currentSubs = materialSubmaterials[materialId] || [];
+                                const newId = `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                                const newSubmaterial = {
+                                  id: newId,
+                                  submaterialname: `${material.materialname} Subtype ${currentSubs.length + 1}`,
+                                  programType: 'bag-drop',
+                                  materialType: 'crv',
+                                  unitType: 'SW - Segregated by Weight',
+                                  crvPrice: 0,
+                                  scrapPrice: 0,
+                                  perUnit: 0,
+                                  minQuantity: 0,
+                                  maxQuantity: 0,
+                                  specialNotes: '',
+                                  enabled: false
+                                };
+                                setMaterialSubmaterials({
+                                  ...materialSubmaterials,
+                                  [materialId]: [...currentSubs, newSubmaterial]
+                                });
+                              }}
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              Add Submaterial
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {material.submaterial && material.submaterial.length > 0 || materialSubmaterials[material._id!]?.length > 0 ? (
+                          [...(material.submaterial || []), ...(materialSubmaterials[material._id!] || [])].map((sub, index) => (
+                            <SubtypeCard
+                              key={`${material._id}-${sub.id}-${index}`}
+                              title={sub.submaterialname}
+                              description={`${sub.programType} - ${sub.materialType}`}
+                              enabled={sub.enabled}
+                              isEditing={editingSubtype === sub.id}
+                              editTitle={editTitle}
+                              submaterialData={sub}
+                              materialId={material._id}
+                              materialSubmaterials={materialSubmaterials}
+                              setMaterialSubmaterials={setMaterialSubmaterials}
+                              onToggle={(enabled) => {
+                                if (sub.id.startsWith('new-')) {
+                                  const materialId = material._id!;
+                                  const updatedSubs = materialSubmaterials[materialId]?.map(s => 
+                                    s.id === sub.id ? { ...s, enabled } : s
+                                  ) || [];
+                                  setMaterialSubmaterials({
+                                    ...materialSubmaterials,
+                                    [materialId]: updatedSubs
+                                  });
+                                } else {
+                                  console.log('Toggle submaterial:', sub.id, enabled);
+                                }
+                              }}
+                              onEditStart={() => {
+                                setEditingSubtype(sub.id);
+                                setEditTitle(sub.submaterialname);
+                              }}
+                              onEditSave={() => {
+                                if (sub.id.startsWith('new-')) {
+                                  const materialId = material._id!;
+                                  const updatedSubs = materialSubmaterials[materialId]?.map(s => 
+                                    s.id === sub.id ? { ...s, submaterialname: editTitle } : s
+                                  ) || [];
+                                  setMaterialSubmaterials({
+                                    ...materialSubmaterials,
+                                    [materialId]: updatedSubs
+                                  });
+                                } else {
+                                  console.log('Save submaterial:', sub.id, editTitle);
+                                }
+                                setEditingSubtype(null);
+                              }}
+                              onEditCancel={() => setEditingSubtype(null)}
+                              onTitleChange={setEditTitle}
+                            />
+                          ))
+                        ) : (
+                          <div className="text-center py-4 text-gray-500 text-sm">
+                            No submaterials found
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
 
@@ -242,6 +302,7 @@ export default function MaterialsAcceptedMain() {
       newMaterial={newMaterial}
       setNewMaterial={setNewMaterial}
     />
+    <Toaster />
       </div>
     </Layout>
   );
@@ -259,6 +320,10 @@ function SubtypeCard({
   onEditSave,
   onEditCancel,
   onTitleChange,
+  submaterialData,
+  materialId,
+  materialSubmaterials,
+  setMaterialSubmaterials,
 }: {
   title: string;
   description: string;
@@ -270,7 +335,12 @@ function SubtypeCard({
   onEditSave?: () => void;
   onEditCancel?: () => void;
   onTitleChange?: (title: string) => void;
+  submaterialData?: any;
+  materialId?: string;
+  materialSubmaterials?: Record<string, any[]>;
+  setMaterialSubmaterials?: (materials: Record<string, any[]>) => void;
 }) {
+  const dispatch = useDispatch<AppDispatch>();
   const [showConfig, setShowConfig] = useState(false);
   
   const handleToggle = (value: boolean) => {
@@ -280,6 +350,7 @@ function SubtypeCard({
     }
   };
   const [config, setConfig] = useState({
+    submaterialname: '',
     programType: '',
     materialType: '',
     unitType: '',
@@ -290,6 +361,24 @@ function SubtypeCard({
     maxQuantity: '',
     specialNotes: ''
   });
+  const [priceError, setPriceError] = useState('');
+
+  useEffect(() => {
+    if (submaterialData && showConfig) {
+      setConfig({
+        submaterialname: submaterialData.submaterialname || '',
+        programType: submaterialData.programType || '',
+        materialType: submaterialData.materialType || '',
+        unitType: submaterialData.unitType || '',
+        crvPrice: submaterialData.crvPrice?.toString() || '',
+        scrapPrice: submaterialData.scrapPrice?.toString() || '',
+        perUnit: submaterialData.perUnit?.toString() || '',
+        minQuantity: submaterialData.minQuantity?.toString() || '',
+        maxQuantity: submaterialData.maxQuantity?.toString() || '',
+        specialNotes: submaterialData.specialNotes || ''
+      });
+    }
+  }, [submaterialData, showConfig]);
 
   return (
     <div className={`p-4 mb-4 rounded-xl border bg-white shadow-sm ${
@@ -306,12 +395,13 @@ function SubtypeCard({
                 type="text"
                 value={editTitle}
                 onChange={(e) => onTitleChange?.(e.target.value)}
-                className="text-sm font-semibold text-gray-900 bg-transparent border border-yellow-400 focus:outline-none"
+                onBlur={onEditSave}
+                autoFocus
+                className="text-sm font-semibold text-gray-900 bg-transparent border-b border-yellow-400 focus:outline-none"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') onEditSave?.();
                   if (e.key === 'Escape') onEditCancel?.();
                 }}
-                autoFocus
               />
             ) : (
               <h3 className="text-sm font-semibold text-gray-900 cursor-pointer" onClick={onEditStart}>{title}</h3>
@@ -321,8 +411,24 @@ function SubtypeCard({
         </div>
 
         <div className="flex items-center gap-3">
-          <Copy className="w-4 h-4 text-gray-500 cursor-pointer" />
-          <Trash2 className="w-4 h-4 text-red-500 cursor-pointer" />
+          {/* <Copy className="w-4 h-4 text-gray-500 cursor-pointer" /> */}
+          <Trash2 
+            className="w-4 h-4 text-red-500 cursor-pointer" 
+            onClick={async () => {
+              if (submaterialData?.id?.startsWith('new-') && materialSubmaterials && setMaterialSubmaterials) {
+                const updatedSubs = materialSubmaterials[materialId!]?.filter(s => s.id !== submaterialData.id) || [];
+                setMaterialSubmaterials({
+                  ...materialSubmaterials,
+                  [materialId!]: updatedSubs
+                });
+              } else {
+                await dispatch(deleteSubmaterial({ materialId: materialId!, submaterialId: submaterialData?.id }));
+                toast.success('Submaterial deleted successfully!', {
+                  position: 'bottom-right'
+                });
+              }
+            }}
+          />
         </div>
       </div>
 
@@ -425,17 +531,24 @@ function SubtypeCard({
               config.unitType === 'SP' ? config.scrapPrice : ''
             }
             onChange={(e) => {
+              const value = e.target.value;
+              setPriceError('');
               if (config.unitType === 'SC') {
-                setConfig({ ...config, perUnit: e.target.value });
+                setConfig({ ...config, perUnit: value });
               } else if (config.unitType === 'SW') {
-                setConfig({ ...config, crvPrice: e.target.value });
+                setConfig({ ...config, crvPrice: value });
               } else if (config.unitType === 'SP') {
-                setConfig({ ...config, scrapPrice: e.target.value });
+                setConfig({ ...config, scrapPrice: value });
               }
             }}
-            className="w-full h-11 px-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow-500"
+            className={`w-full h-11 px-3 rounded-lg border focus:ring-2 focus:ring-yellow-500 ${
+              priceError ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="0.00"
           />
+          {priceError && (
+            <p className="text-red-500 text-xs mt-1">{priceError}</p>
+          )}
         </div>
       )}
 
@@ -486,6 +599,72 @@ function SubtypeCard({
           className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow-500"
           placeholder="Customer prep instructions, handling notes..."
         />
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end pt-3">
+        <Button
+          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2"
+          onClick={async () => {
+            // Validate price field
+            const currentPrice = config.unitType === 'SC' ? config.perUnit :
+                               config.unitType === 'SW' ? config.crvPrice :
+                               config.unitType === 'SP' ? config.scrapPrice : '';
+            
+            if (!currentPrice || parseFloat(currentPrice) <= 0) {
+              const fieldName = config.unitType === 'SC' ? 'Per Unit' :
+                               config.unitType === 'SW' ? 'CRV Price' :
+                               config.unitType === 'SP' ? 'Scrap Price' : 'Price';
+              setPriceError(`${fieldName} is required and must be greater than 0`);
+              toast.error(`${fieldName} is required and must be greater than 0`, {
+                position: 'bottom-right'
+              });
+              return;
+            }
+            
+            try {
+              const response = await fetch(`/api/materials/${materialId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  submaterialId: submaterialData?.id,
+                  config: config
+                })
+              });
+              
+              if (response.ok) {
+                const result = await response.json();
+                toast.success('Configuration saved successfully!', {
+                  position: 'bottom-right'
+                });
+                setShowConfig(false);
+                
+                // If it was a new submaterial, remove it from local state and refresh
+                if (submaterialData?.id?.startsWith('new-') && materialSubmaterials && setMaterialSubmaterials) {
+                  const materialIdStr = materialId!;
+                  const updatedSubs = materialSubmaterials[materialIdStr]?.filter((s: any) => s.id !== submaterialData.id) || [];
+                  setMaterialSubmaterials({
+                    ...materialSubmaterials,
+                    [materialIdStr]: updatedSubs
+                  });
+                  // Refresh materials data to get the new submaterial from database
+                  window.location.reload();
+                }
+              } else {
+                toast.error('Failed to save configuration', {
+                  position: 'bottom-right'
+                });
+              }
+            } catch (error) {
+              console.error('Error saving configuration:', error);
+              toast.error('An error occurred while saving', {
+                position: 'bottom-right'
+              });
+            }
+          }}
+        >
+          Save
+        </Button>
       </div>
     </div>
   </div>
