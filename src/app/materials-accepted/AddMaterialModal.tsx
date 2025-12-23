@@ -24,6 +24,7 @@ interface NewMaterial {
   minQuantity: string;
   maxQuantity: string;
   specialNotes: string;
+  submaterial: any[];
 }
 
 interface AddMaterialModalProps {
@@ -54,7 +55,15 @@ export default function AddMaterialModal({
   const handleSave = async () => {
     if (!validateForm()) return;
     try {
-      await dispatch(addMaterial(newMaterial)).unwrap();
+      const materialData = {
+        ...newMaterial,
+        crvPrice: parseFloat(newMaterial.crvPrice) || 0,
+        scrapPrice: parseFloat(newMaterial.scrapPrice) || 0,
+        perUnit: parseFloat(newMaterial.perUnit) || 0,
+        minQuantity: parseInt(newMaterial.minQuantity) || 0,
+        maxQuantity: parseInt(newMaterial.maxQuantity) || 0,
+      };
+      await dispatch(addMaterial(materialData)).unwrap();
       setShowAddModal(false);
       setNewMaterial({
         materialname: "",
@@ -67,6 +76,7 @@ export default function AddMaterialModal({
         minQuantity: "",
         maxQuantity: "",
         specialNotes: "",
+        submaterial: [],
       });
     } catch (error) {
       console.error('Failed to save material:', error);
@@ -286,6 +296,7 @@ export default function AddMaterialModal({
                   minQuantity: "",
                   maxQuantity: "",
                   specialNotes: "",
+                  submaterial: [],
                 });
               }}
             >
