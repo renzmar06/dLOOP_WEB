@@ -543,7 +543,6 @@ export default function BusinessProfile() {
                 {[
                   ["business-info", "Business Information"],
                   ["social-settings", "Social Media & Settings"],
-                  ["locations", "Business Locations"],
                   ["working-hours", "Working Hours"],
                   ["material", "Material"],
                 ].map(([id, label]) => (
@@ -706,73 +705,6 @@ export default function BusinessProfile() {
                       placeholder="e.g., Business Registration Number"
                     />
                   </div>
-                </div>
-              )}
-
-              {activeTab === "locations" && (
-                <div className="space-y-6 max-w-2xl">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                      <Home className="w-4 h-4 text-blue-500" />
-                      Primary Location / Service Area
-                    </label>
-                    <div className="relative">
-                      <input
-                        value={form.googleLocation}
-                        onChange={(e) =>
-                          onChange("googleLocation", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 pl-10"
-                        placeholder="Search Google Maps location"
-                      />
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                        <div className="w-4 h-4 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
-                          <MapPin className="w-2.5 h-2.5 text-white" />
-                        </div>
-                      </div>
-                    </div>
-                    {form.googleLocation && (
-                      <div className="mt-2 space-y-3">
-                        <div className="w-full h-48 bg-gray-100 rounded-lg border border-gray-300 overflow-hidden">
-                          <div className="w-full h-full bg-gradient-to-br from-green-100 to-blue-100 relative">
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="text-center">
-                                <div className="w-8 h-8 bg-red-500 rounded-full mx-auto mb-2 flex items-center justify-center">
-                                  <MapPin className="w-4 h-4 text-white" />
-                                </div>
-                                <p className="text-sm font-medium text-gray-700">
-                                  {form.googleLocation}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Map Preview
-                                </p>
-                              </div>
-                            </div>
-                            <div className="absolute top-4 left-4 bg-white rounded px-2 py-1 text-xs text-gray-600 shadow">
-                              Google Maps
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                          <div className="flex items-center gap-2 text-sm text-yellow-800">
-                            <MapPin className="w-4 h-4 text-yellow-600" />
-                            <span className="font-medium">
-                              Selected Location:
-                            </span>
-                            <span>{form.googleLocation}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <Input
-                    label="Service Area Description"
-                    value={form.serviceArea}
-                    onChange={(e) => onChange("serviceArea", e.target.value)}
-                    placeholder="Describe your service coverage area"
-                  />
                 </div>
               )}
 

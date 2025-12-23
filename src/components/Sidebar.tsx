@@ -56,18 +56,18 @@ export default function Sidebar() {
       label: 'Business Profile',
       href: '/business-profile',
     },
-    {
-      id: 'business-verification',
-      icon: Shield,
-      label: 'Business Verification',
-      href: '/business-verification',
-    },
-    {
-      id: 'materials-accepted',
-      icon: Recycle,
-      label: 'materials-accepted',
-      href: '/materials-accepted',
-    },
+    // {
+    //   id: 'business-verification',
+    //   icon: Shield,
+    //   label: 'Business Verification',
+    //   href: '/business-verification',
+    // },
+    // {
+    //   id: 'materials-accepted',
+    //   icon: Recycle,
+    //   label: 'Material Management',
+    //   href: '/materials-accepted',
+    // },
     {
       id: 'Locations',
       icon: LocateIcon,
@@ -77,7 +77,7 @@ export default function Sidebar() {
     {
       id: 'SubscriptionBilling',
       icon: CreditCard,
-      label: 'Subscription & Billing',
+      label: 'Subscription',
       href: '/SubscriptionBilling'
     },
     
