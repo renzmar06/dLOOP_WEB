@@ -1,136 +1,187 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Check,
   CreditCard,
   Crown,
   Download,
-
   Settings,
   X,
   AlertTriangle,
   Zap,
   Lock,
+  Edit,
+  Plus,
 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import { AppDispatch, RootState } from "@/redux/store";
+import {
+  fetchBillingInfo,
+  updatePaymentMethod,
+} from "@/redux/slices/billingInformationSlice";
+import { fetchSubscriptions } from "@/redux/slices/subscriptionBillingSlice";
 import Layout from "@/components/Layout";
 
 export default function SubscriptionBillingPage() {
+  const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    billingInfo,
+    isLoading: billingLoading,
+    error: billingError,
+  } = useSelector((state: RootState) => state.billingInformation);
+  const { subscriptions, isLoading: subscriptionLoading } = useSelector(
+    (state: RootState) => state.subscriptionBilling
+  );
+
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showUpdatePaymentModal, setShowUpdatePaymentModal] = useState(false);
 
   // Payment form state
-  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
-  const [expiration, setExpiration] = useState("12/27");
-  const [cvc, setCvc] = useState("123");
-  const [cardholderName, setCardholderName] = useState("test");
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiration, setExpiration] = useState("");
+  const [cvc, setCvc] = useState("");
+  const [cardholderName, setCardholderName] = useState("");
   const [isDefault, setIsDefault] = useState(true);
 
-  const plans = [
-    {
-      name: "Free",
-      price: "$0",
-      period: "/month",
-      icon: <Zap className="w-8 h-8 text-gray-500" />,
-      features: [
-        "Basic profile listing",
-        "Basic coupons",
-        "Limited payouts",
-        "Standard map visibility",
-      ],
-      buttonText: "Downgrade to Free",
-      buttonStyle:
-        "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50",
-    },
-    {
-      name: "Pro",
-      price: "$39",
-      period: "/month",
-      icon: <Crown className="w-8 h-8 text-white" />,
-      features: [
-        "Unlimited coupons",
-        "Advanced analytics",
-        "Boost credits included",
-        "Gallery photos & videos",
-        "Higher payout limits",
-        "Event participation",
-      ],
-      buttonText: "Upgrade to Pro",
-      buttonStyle: "bg-teal-500 text-white hover:bg-teal-600",
-      popular: true,
-    },
-    {
-      name: "Elite",
-      price: "$99",
-      period: "/month",
-      icon: (
-        <div className="w-12 h-12 bg-purple-500 rounded flex items-center justify-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-8 h-8 text-white"
-          >
-            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
-            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
-            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
-            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
-          </svg>
-        </div>
-      ),
-      features: [
-        "Everything in Pro",
-        "Priority sponsored placement",
-        "Advanced customer insights",
-        "High-limit payouts",
-        "Dedicated account rep",
-        "Custom advertising packages",
-      ],
-      buttonText: "Upgrade to Elite",
-      buttonStyle:
-        "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50",
-    },
-  ];
+  useEffect(() => {
+    dispatch(fetchBillingInfo());
+    dispatch(fetchSubscriptions());
+  }, [dispatch]);
 
+  // Refresh data when component mounts or when returning from other pages
+  useEffect(() => {
+    const handleFocus = () => {
+      dispatch(fetchSubscriptions());
+    };
 
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [dispatch]);
 
-  const billingHistory = [
-    {
-      date: "12/11/2025",
-      invoice: "INV-2025-12",
-      plan: "Pro",
-      amount: "$39.00",
-      status: "Paid",
-    },
-    {
-      date: "11/11/2025",
-      invoice: "INV-2025-11",
-      plan: "Pro",
-      amount: "$39.00",
-      status: "Paid",
-    },
-    {
-      date: "10/11/2025",
-      invoice: "INV-2025-10",
-      plan: "Pro",
-      amount: "$39.00",
-      status: "Paid",
-    },
-    {
-      date: "9/11/2025",
-      invoice: "INV-2025-09",
-      plan: "Free",
-      amount: "$0.00",
-      status: "Paid",
-    },
-  ];
+  const getCurrentSubscription = () => {
+    // Get the most recent subscription (latest selectedAt date)
+    const sortedSubs = [...subscriptions].sort(
+      (a, b) =>
+        new Date(b.selectedAt).getTime() - new Date(a.selectedAt).getTime()
+    );
+
+    const latestSub = sortedSubs[0];
+
+    if (latestSub) {
+      // Check if plan is expired
+      const expiryDate = new Date(
+        latestSub.planExpiryDate || latestSub.selectedAt
+      );
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
+      const now = new Date();
+
+      if (now > expiryDate) {
+        return { ...latestSub, status: "inactive" };
+      }
+      return latestSub;
+    }
+
+    return {
+      planName: "Free",
+      planPrice: "$0",
+      status: "active",
+      selectedAt: new Date().toISOString(),
+    };
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const getNextBillingDate = () => {
+    const currentSub = getCurrentSubscription();
+    if (!currentSub) return "N/A";
+
+    const purchaseDate = new Date(currentSub.selectedAt);
+    const nextBilling = new Date(purchaseDate);
+    nextBilling.setMonth(nextBilling.getMonth() + 1);
+
+    return formatDate(nextBilling.toISOString());
+  };
+
+  const getBillingHistory = () => {
+    if (!subscriptions.length) return [];
+
+    return subscriptions
+      .map((sub, index) => {
+        const purchaseDate = new Date(sub.selectedAt);
+        const day = String(purchaseDate.getDate()).padStart(2, "0");
+        const month = String(purchaseDate.getMonth() + 1).padStart(2, "0");
+        const year = purchaseDate.getFullYear();
+
+        return {
+          date: `${day}/${month}/${year}`, // DD/MM/YYYY format
+          invoice: `INV-${year}-${month}`, // INV-year-mm format
+          plan: sub.planName,
+          amount: sub.planPrice,
+          status: "Paid",
+        };
+      })
+      .reverse(); // Show newest first
+  };
+
+  const handleUpdatePayment = async () => {
+    try {
+      await dispatch(
+        updatePaymentMethod({
+          cardNumber,
+          expiration,
+          cvc,
+          cardholderName,
+          isDefault,
+        })
+      ).unwrap();
+      setShowUpdatePaymentModal(false);
+    } catch (error) {
+      console.error("Failed to update payment method:", error);
+    }
+  };
+
+  const getCurrentPaymentMethod = () => {
+    return billingInfo.find((info) => info.isDefault) || billingInfo[0];
+  };
+
+  // Validation functions
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 16);
+    const formatted = value.replace(/(\d{4})(?=\d)/g, "$1 ");
+    setCardNumber(formatted);
+  };
+
+  const handleExpirationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 4);
+    if (value.length >= 2) {
+      setExpiration(value.slice(0, 2) + "/" + value.slice(2));
+    } else {
+      setExpiration(value);
+    }
+  };
+
+  const handleCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 3);
+    setCvc(value);
+  };
+
+  const handleCardholderNameChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+    setCardholderName(value);
+  };
 
   return (
     <Layout>
@@ -151,39 +202,65 @@ export default function SubscriptionBillingPage() {
           </header>
 
           {/* Current Plan */}
-          <div className="bg-teal-500 rounded-xl p-6 text-white">
+          <div className="bg-gradient-to-r from-amber-400 to-amber-500 text-white rounded-xl p-6">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <Crown className="w-8 h-8" />
                 <div>
                   <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold">Current Plan: Pro</h2>
-                    <span className="bg-teal-400 px-3 py-1 rounded-lg text-sm font-medium">
-                      Active
+                    <h2 className="text-xl font-bold">
+                      Current Plan:{" "}
+                      {getCurrentSubscription()?.planName || "No Plan"}
+                    </h2>
+                    <span
+                      className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                        getCurrentSubscription()?.status === "active"
+                          ? "bg-white text-amber-600"
+                          : getCurrentSubscription()?.status === "paused"
+                          ? "bg-yellow-400"
+                          : getCurrentSubscription()?.status === "inactive"
+                          ? "bg-gray-400"
+                          : "bg-red-400"
+                      }`}
+                    >
+                      {getCurrentSubscription()?.status === "active"
+                        ? "Active"
+                        : getCurrentSubscription()?.status === "paused"
+                        ? "Paused"
+                        : getCurrentSubscription()?.status === "inactive"
+                        ? "Inactive"
+                        : getCurrentSubscription()?.status === "cancelled"
+                        ? "Cancelled"
+                        : "Inactive"}
                     </span>
                   </div>
-                  <p className="text-teal-100 mt-1">$39/month</p>
-                  <p className="text-teal-100 text-sm">
-                    Next billing: January 11, 2026
+                  <p className="text-amber-100 mt-1">
+                    {getCurrentSubscription()?.planPrice || "$0"}/month
+                  </p>
+                  <p className="text-amber-100 text-sm">
+                    Next billing: {getNextBillingDate()}
                   </p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <button
                   onClick={() => setShowPauseModal(true)}
-                  className="flex items-center gap-2 px-6 py-2 bg-white text-teal-600 rounded-lg font-semibold hover:bg-gray-50 transition"
+                  className="flex items-center gap-2 px-6 py-2 bg-white text-amber-600 rounded-lg font-semibold hover:bg-gray-50 transition"
                 >
                   <AlertTriangle className="w-4 h-4" />
                   Pause Subscription
                 </button>
                 <button
                   onClick={() => setShowCancelModal(true)}
-                  className="flex items-center gap-2 px-6 py-2 bg-white text-teal-600 rounded-lg font-semibold hover:bg-gray-50 transition"
+                  className="flex items-center gap-2 px-6 py-2 bg-white text-amber-600 rounded-lg font-semibold hover:bg-gray-50 transition"
                 >
                   <X className="w-4 h-4" />
                   Cancel Subscription
                 </button>
-                <button className="bg-white text-teal-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-50 transition">
+                <button
+                  onClick={() => router.push("/subscription-billing")}
+                  className="bg-white text-amber-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-50 transition"
+                >
                   Change Plan
                 </button>
               </div>
@@ -220,8 +297,8 @@ export default function SubscriptionBillingPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {billingHistory.map((row) => (
-                    <tr key={row.invoice}>
+                  {getBillingHistory().map((row, index) => (
+                    <tr key={`${row.invoice}-${index}`}>
                       <td className="py-4 px-6 text-sm">{row.date}</td>
                       <td className="py-4 px-6 text-sm text-gray-600">
                         {row.invoice}
@@ -261,27 +338,49 @@ export default function SubscriptionBillingPage() {
               </p>
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-mono text-lg">•••• •••• •••• 4242</p>
+                  <p className="font-mono text-lg">
+                    {getCurrentPaymentMethod()?.cardNumber
+                      ? `•••• •••• •••• ${getCurrentPaymentMethod()?.cardNumber.slice(
+                          -4
+                        )}`
+                      : "N/A"}
+                  </p>
                   <div className="flex gap-4 text-sm text-gray-600 mt-1">
                     <span>
-                      Expires<br></br> 12/27
+                      Expires<br></br>{" "}
+                      {getCurrentPaymentMethod()?.expiration || "N/A"}
                     </span>
                     <span>
-                      Card Type<br></br> Credit
+                      Card Type<br></br> {"Credit"}
                     </span>
                   </div>
                 </div>
-                <div className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
-                  VISA
-                </div>
+                {getCurrentPaymentMethod()?.cardNumber && (
+                  <div className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-bold">
+                    VISA
+                  </div>
+                )}
               </div>
             </div>
 
             <button
               onClick={() => setShowUpdatePaymentModal(true)}
-              className="w-full py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition mb-4"
+              disabled={billingLoading}
+              className={`w-full py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition mb-4 flex items-center justify-center gap-2 ${
+                billingLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              Update Payment Method
+              {getCurrentPaymentMethod()?.cardNumber ? (
+                <>
+                  <Edit className="w-4 h-4" />
+                  {billingLoading ? "Loading..." : "Update Payment Method"}
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  {billingLoading ? "Loading..." : "Add Payment Method"}
+                </>
+              )}
             </button>
 
             <div className="flex gap-2">
@@ -404,9 +503,10 @@ export default function SubscriptionBillingPage() {
                     <input
                       type="text"
                       value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
+                      onChange={handleCardNumberChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      placeholder="1234 5678 9012 3456"
+                      placeholder="1234 1234 1234 1234"
+                      maxLength={19}
                     />
                   </div>
 
@@ -418,8 +518,9 @@ export default function SubscriptionBillingPage() {
                       <input
                         type="text"
                         value={expiration}
-                        onChange={(e) => setExpiration(e.target.value)}
+                        onChange={handleExpirationChange}
                         placeholder="MM/YY"
+                        maxLength={5}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                     </div>
@@ -430,8 +531,9 @@ export default function SubscriptionBillingPage() {
                       <input
                         type="text"
                         value={cvc}
-                        onChange={(e) => setCvc(e.target.value)}
+                        onChange={handleCvcChange}
                         placeholder="123"
+                        maxLength={3}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                     </div>
@@ -444,7 +546,8 @@ export default function SubscriptionBillingPage() {
                     <input
                       type="text"
                       value={cardholderName}
-                      onChange={(e) => setCardholderName(e.target.value)}
+                      onChange={handleCardholderNameChange}
+                      placeholder="John Doe"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                   </div>
@@ -481,14 +584,14 @@ export default function SubscriptionBillingPage() {
                   </div>
 
                   <button
-                    onClick={() => {
-                      // Handle save logic here (e.g., API call)
-                      setShowUpdatePaymentModal(false);
-                    }}
-                    className="w-full bg-teal-500 text-white py-4 rounded-lg font-semibold hover:bg-teal-600 transition flex items-center justify-center gap-2"
+                    onClick={handleUpdatePayment}
+                    disabled={billingLoading}
+                    className={`w-full bg-teal-500 text-white py-4 rounded-lg font-semibold hover:bg-teal-600 transition flex items-center justify-center gap-2 ${
+                      billingLoading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   >
                     <Lock className="w-5 h-5" />
-                    Save Payment Method
+                    {billingLoading ? "Saving..." : "Save Payment Method"}
                   </button>
                 </div>
               </div>

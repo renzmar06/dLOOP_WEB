@@ -57,9 +57,9 @@ export default function Sidebar() {
       id: 'SubscriptionBilling',
       icon: CreditCard,
       label: 'Subscription & Billing',
-      href: '/SubscriptionBilling'
+      href: '/subscription-billing'
     },
-    
+
     {
       id: 'BillingInformation',
       icon: CreditCard,
