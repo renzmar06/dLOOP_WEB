@@ -5,6 +5,19 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppSelector } from '@/redux/hooks';
 import ManagerSelector from './ManagerSelector';
 
+// Extend Window interface to include Google Maps
+declare global {
+  interface Window {
+    google?: {
+      maps?: {
+        places?: any;
+        event?: any;
+        [key: string]: any;
+      };
+    };
+  }
+}
+
 interface Location {
   name: string;
   address: string;
