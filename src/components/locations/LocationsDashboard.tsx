@@ -9,7 +9,7 @@ import LocationCard from './LocationCard';
 import LocationModal from './LocationModal/LocationModal';
 import toast, { Toaster } from 'react-hot-toast';
 
-interface Location {
+export interface Location {
   _id: string;
   userId: string;
   name: string;
