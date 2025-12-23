@@ -63,12 +63,6 @@ export default function Sidebar() {
       href: '/business-verification',
     },
     {
-      id: 'materials-accepted',
-      icon: Recycle,
-      label: 'materials-accepted',
-      href: '/materials-accepted',
-    },
-    {
       id: 'Locations',
       icon: LocateIcon,
       label: 'Locations',
