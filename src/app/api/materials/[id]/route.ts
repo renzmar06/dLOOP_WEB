@@ -139,7 +139,7 @@ export async function DELETE(
     const result = await db.collection('materials').updateOne(
       { _id: new ObjectId(id) },
       { 
-        $pull: { submaterial: { id: submaterialId } },
+        $pull: { submaterial: { id: submaterialId } } as any,
         $set: { updatedAt: new Date() }
       }
     );

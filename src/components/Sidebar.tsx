@@ -88,7 +88,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex items-center justify-between p-2 border-b border-gray-200 min-h-[75px]">
         <div className="flex items-center space-x-2">
-          <div className="w-10 h-9 bg-gradient-to-br from-teal-500 to-green-500 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-9 bg-gradient-to-br from-teal-500 to-yellow-500 rounded-lg flex items-center justify-center">
             <Leaf className="text-white" size={20} />
           </div>
           <div>
