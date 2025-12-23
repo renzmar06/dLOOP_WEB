@@ -79,6 +79,13 @@ export default function Sidebar() {
       icon: CreditCard,
       label: 'Subscription & Billing',
       href: '/SubscriptionBilling'
+    },
+    
+    {
+      id: 'BillingInformation',
+      icon: CreditCard,
+      label: 'Billing Information',
+      href: '/billing-information'
     }
   ];  
 

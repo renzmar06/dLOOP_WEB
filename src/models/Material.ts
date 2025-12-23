@@ -1,20 +1,36 @@
-export interface Material {
-  _id?: string;
-  name: string;
+export interface Submaterial {
+  id: string;
+  enabled: boolean;
+  submaterialname: string;
+  programType: string;
   materialType: string;
   unitType: string;
   crvPrice: number;
   scrapPrice: number;
   perUnit: number;
-  minQuantity: string;
-  maxQuantity: string;
+  minQuantity: number;
+  maxQuantity: number;
   specialNotes: string;
+}
+
+export interface Material {
+  _id?: string;
+  materialname: string;
+  materialType: string;
+  unitType: string;
+  crvPrice: number;
+  scrapPrice: number;
+  perUnit: number;
+  minQuantity: number;
+  maxQuantity: number;
+  specialNotes: string;
+  submaterial: Submaterial[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateMaterialRequest {
-  name: string;
+  materialname: string;
   materialType: string;
   unitType: string;
   crvPrice: string;
@@ -23,4 +39,5 @@ export interface CreateMaterialRequest {
   minQuantity: string;
   maxQuantity: string;
   specialNotes: string;
+  submaterial: Submaterial[];
 }
