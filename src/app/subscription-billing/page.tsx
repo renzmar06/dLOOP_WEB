@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Check, Crown, Zap, Rocket } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,7 +9,7 @@ import {
   selectPlan,
   fetchSubscriptions,
 } from "@/redux/slices/subscriptionBillingSlice";
-// import Layout from "@/components/Layout";
+import Layout from "@/components/Layout";
 
 export default function SubscriptionBillingPage() {
   const router = useRouter();
@@ -17,10 +17,33 @@ export default function SubscriptionBillingPage() {
   const { subscriptions, isLoading, error } = useSelector(
     (state: RootState) => state.subscriptionBilling
   );
+  const [showSidebar, setShowSidebar] = useState(false);
 
   useEffect(() => {
     dispatch(fetchSubscriptions());
+    checkBusinessProfileCompletion();
   }, [dispatch]);
+
+  const checkBusinessProfileCompletion = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/business", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      
+      if (data.success && data.data.length > 0) {
+        const business = data.data[0];
+        // Check if required fields are filled
+        const isComplete = business.businessName && business.phone && business.email;
+        setShowSidebar(isComplete);
+      }
+    } catch (error) {
+      console.error("Failed to check business profile:", error);
+    }
+  };
 
   const handlePlanSelect = async (plan: { name: string; price: string }) => {
     try {
@@ -35,7 +58,6 @@ export default function SubscriptionBillingPage() {
           planExpiryDate: expiryDate.toISOString(),
         })
       ).unwrap();
-      // router.push("/billing-information");
       router.push("/business-profile");
     } catch (error) {
       console.error("Failed to select plan:", error);
@@ -94,24 +116,42 @@ export default function SubscriptionBillingPage() {
     },
   ];
 
-  return (
+  const PageContent = () => (
     <div className="flex flex-col h-full">
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 min-h-[75px] shadow-sm">
-        <div className="flex items-center space-x-2">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">
-              Choose Your Plan
-            </h1>
-            <p className="text-sm text-gray-500">
-              Select the plan that best fits your business needs
-            </p>
+      {/* Fixed Header - only when no sidebar */}
+      {!showSidebar && (
+        <div className="fixed top-0 left-0 right-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 min-h-[75px] shadow-sm">
+          <div className="flex items-center space-x-2">
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">
+                Choose Your Plan
+              </h1>
+              <p className="text-sm text-gray-500">
+                Select the plan that best fits your business needs
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Header for sidebar layout */}
+      {showSidebar && (
+        <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 min-h-[75px] shadow-sm">
+          <div className="flex items-center space-x-2">
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">
+                Choose Your Plan
+              </h1>
+              <p className="text-sm text-gray-500">
+                Select the plan that best fits your business needs
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto p-6 pt-[91px]">
+      <div className={`flex-1 overflow-auto p-6 ${!showSidebar ? 'pt-[91px]' : ''}`}>
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-6 mt-12">
             {plans.map((plan) => (
@@ -176,5 +216,13 @@ export default function SubscriptionBillingPage() {
         </div>
       </div>
     </div>
+  );
+
+  return showSidebar ? (
+    <Layout>
+      <PageContent />
+    </Layout>
+  ) : (
+    <PageContent />
   );
 }

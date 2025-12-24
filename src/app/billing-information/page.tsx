@@ -20,9 +20,11 @@ import { AppDispatch, RootState } from "@/redux/store";
 import {
   fetchBillingInfo,
   updatePaymentMethod,
+  cancelSubscription,
 } from "@/redux/slices/billingInformationSlice";
 import { fetchSubscriptions } from "@/redux/slices/subscriptionBillingSlice";
 import Layout from "@/components/Layout";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function SubscriptionBillingPage() {
   const router = useRouter();
@@ -72,17 +74,14 @@ export default function SubscriptionBillingPage() {
     const latestSub = sortedSubs[0];
 
     if (latestSub) {
-      // Check if plan is expired
-      const expiryDate = new Date(
-        latestSub.planExpiryDate || latestSub.selectedAt
-      );
-      expiryDate.setMonth(expiryDate.getMonth() + 1);
+      // Check if plan is expired using planExpiryDate
       const now = new Date();
+      const expiryDate = new Date(latestSub.planExpiryDate);
 
       if (now > expiryDate) {
         return { ...latestSub, status: "inactive" };
       }
-      return latestSub;
+      return { ...latestSub, status: "active" };
     }
 
     return {
@@ -91,6 +90,39 @@ export default function SubscriptionBillingPage() {
       status: "active",
       selectedAt: new Date().toISOString(),
     };
+  };
+
+  const hasSelectedPlanThisMonth = () => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const currentPlan = getCurrentSubscription()?.planName;
+
+    // Always allow changes from Free plan
+    if (currentPlan === "Free") {
+      return false;
+    }
+
+    // If current plan is Pro, allow upgrade to Elite only if no Elite was selected this month
+    if (currentPlan === "Pro") {
+      return subscriptions.some(sub => {
+        const subDate = new Date(sub.selectedAt);
+        return subDate.getMonth() === currentMonth && 
+               subDate.getFullYear() === currentYear &&
+               sub.planName === "Elite";
+      });
+    }
+
+    // If current plan is Elite, block all changes
+    if (currentPlan === "Elite") {
+      return true;
+    }
+
+    return false;
+  };
+
+  const canChangePlan = () => {
+    return !hasSelectedPlanThisMonth();
   };
 
   const formatDate = (dateString: string) => {
@@ -176,6 +208,24 @@ export default function SubscriptionBillingPage() {
     setCvc(value);
   };
 
+  const handleCancelSubscription = async () => {
+    try {
+      const currentSub = getCurrentSubscription();
+      if (!currentSub || !('_id' in currentSub) || !currentSub._id) {
+        toast.error("No active subscription to cancel");
+        return;
+      }
+
+      await dispatch(cancelSubscription(currentSub._id)).unwrap();
+      toast.success("Subscription cancelled successfully!");
+      await dispatch(fetchSubscriptions()).unwrap();
+      setShowCancelModal(false);
+    } catch (error) {
+      console.error("Failed to cancel subscription:", error);
+      toast.error("Failed to cancel subscription");
+    }
+  };
+
   const handleCardholderNameChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -258,8 +308,18 @@ export default function SubscriptionBillingPage() {
                   Cancel Subscription
                 </button>
                 <button
-                  onClick={() => router.push("/subscription-billing")}
-                  className="bg-white text-amber-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-50 transition"
+                  onClick={() => {
+                    if (canChangePlan()) {
+                      router.push("/subscription-billing");
+                    }
+                  }}
+                  disabled={!canChangePlan()}
+                  className={`px-6 py-2 rounded-lg font-semibold transition ${
+                    canChangePlan()
+                      ? "bg-white text-amber-600 hover:bg-gray-50"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                  title={!canChangePlan() ? "You can only change plans once per month" : ""}
                 >
                   Change Plan
                 </button>
@@ -469,7 +529,10 @@ export default function SubscriptionBillingPage() {
                   >
                     Keep Subscription
                   </button>
-                  <button className="flex-1 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition">
+                  <button 
+                    onClick={handleCancelSubscription}
+                    className="flex-1 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
+                  >
                     Cancel Subscription
                   </button>
                 </div>
@@ -599,6 +662,7 @@ export default function SubscriptionBillingPage() {
           )}
         </div>
       </div>
+      <Toaster position="top-right" />
     </Layout>
   );
 }

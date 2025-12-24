@@ -53,6 +53,25 @@ export const updatePaymentMethod = createAsyncThunk(
   }
 );
 
+export const cancelSubscription = createAsyncThunk(
+  'billingInformation/cancelSubscription',
+  async (subscriptionId: string) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`/api/subscription-billing/${subscriptionId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to cancel subscription');
+    }
+    
+    return response.json();
+  }
+);
+
 const billingInformationSlice = createSlice({
   name: 'billingInformation',
   initialState,
@@ -93,6 +112,17 @@ const billingInformationSlice = createSlice({
       .addCase(updatePaymentMethod.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || 'Failed to update payment method';
+      })
+      .addCase(cancelSubscription.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(cancelSubscription.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(cancelSubscription.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to cancel subscription';
       });
   },
 });
