@@ -9,6 +9,8 @@ import {
   Clock,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import Layout from "@/components/Layout";
 import PaymentModal from "@/components/PaymentModal";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -36,12 +38,13 @@ interface Subscription {
 }
 
 export default function SubscriptionBillingPage() {
+  const router = useRouter();
   const [currentSubscription, setCurrentSubscription] = useState<Subscription>({
     planId: "free",
     planName: "Free",
     status: "active",
-    startDate: "2024-01-01",
-    nextBillingDate: "2024-12-31",
+    startDate: "2026-01-01",
+    nextBillingDate: "2026-12-31",
     price: 0,
   });
 
@@ -176,7 +179,7 @@ export default function SubscriptionBillingPage() {
     plan.id === currentSubscription.planId;
 
   return (
-    <Layout>
+    <>
       <div className="min-h-screen bg-gray-50 px-5 py-6 space-y-8">
         {/* Current Plan */}
         <div className="bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl p-6 text-white shadow">
@@ -186,7 +189,14 @@ export default function SubscriptionBillingPage() {
               <h2 className="text-3xl font-bold">
                 {currentSubscription.planName}
               </h2>
+               <Button
+                    className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-amber-500 hover:to-amber-600 text-white font-medium py-3 px-6 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => router.push('/business-profile')}
+                  >
+                    Confirmed
+                </Button>
             </div>
+            
             <div className="text-right">
               <div className="flex items-center gap-1 text-sm">
                 <Clock className="w-4 h-4" />
@@ -295,6 +305,6 @@ export default function SubscriptionBillingPage() {
           onCancel={() => setShowConfirmationModal(false)}
         />
       )}
-    </Layout>
+    </>
   );
 }

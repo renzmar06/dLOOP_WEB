@@ -6,7 +6,6 @@ import {
   CreditCard,
   Crown,
   Download,
-
   Settings,
   X,
   AlertTriangle,

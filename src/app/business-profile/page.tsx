@@ -33,8 +33,7 @@ import {
 } from "lucide-react";
 import PreviewModal from "@/components/PreviewModal";
 import Layout from "@/components/Layout";
-import Material from "./Material";
-import LocationsDashboard from "@/components/locations/LocationsDashboard";
+import Material from '@/components/Material/Material';
 
 const Input = ({
   label,
@@ -165,6 +164,7 @@ const RichTextEditor = ({
             className={`p-1 rounded ${
               activeFormats.bold ? "bg-yellow-200" : "hover:bg-gray-200"
             }`}
+            suppressHydrationWarning={true}
           >
             <Bold className="w-4 h-4" />
           </button>
@@ -174,6 +174,7 @@ const RichTextEditor = ({
             className={`p-1 rounded ${
               activeFormats.italic ? "bg-yellow-200" : "hover:bg-gray-200"
             }`}
+            suppressHydrationWarning={true}
           >
             <Italic className="w-4 h-4" />
           </button>
@@ -183,6 +184,7 @@ const RichTextEditor = ({
             className={`p-1 rounded ${
               activeFormats.underline ? "bg-yellow-200" : "hover:bg-gray-200"
             }`}
+            suppressHydrationWarning={true}
           >
             <Underline className="w-4 h-4" />
           </button>
@@ -190,6 +192,7 @@ const RichTextEditor = ({
             type="button"
             onClick={() => handleFormat("removeFormat")}
             className="p-1 rounded hover:bg-gray-200"
+            suppressHydrationWarning={true}
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -544,7 +547,6 @@ export default function BusinessProfile() {
                 {[
                   ["business-info", "Business Information"],
                   ["social-settings", "Social Media & Settings"],
-                  ["locations", "Business Locations"],
                   ["working-hours", "Working Hours"],
                   ["material", "Material"],
                 ].map(([id, label]) => (
@@ -1045,7 +1047,7 @@ export default function BusinessProfile() {
 
                         <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
                           <div className="flex gap-2">
-                            <button className="flex-1 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-semibold shadow-md text-sm">
+                            <button className="flex-1 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-semibold shadow-md text-sm" suppressHydrationWarning={true}>
                               Get Directions
                             </button>
                           </div>
