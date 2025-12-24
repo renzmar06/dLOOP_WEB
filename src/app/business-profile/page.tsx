@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import PreviewModal from "@/components/PreviewModal";
 import Layout from "@/components/Layout";
-import Material from "./Material";
+import Material from '@/components/Material/Material';
 
 const Input = ({
   label,

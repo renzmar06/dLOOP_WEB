@@ -234,7 +234,7 @@ export default function AddMaterialModal({
                   Min Quantity
                 </label>
                 <input
-                  type="text"
+                  type="number"
                   value={newMaterial.minQuantity}
                   onChange={(e) =>
                     setNewMaterial({ ...newMaterial, minQuantity: e.target.value })
@@ -248,7 +248,7 @@ export default function AddMaterialModal({
                   Max Quantity
                 </label>
                 <input
-                  type="text"
+                  type="number"
                   value={newMaterial.maxQuantity}
                   onChange={(e) =>
                     setNewMaterial({ ...newMaterial, maxQuantity: e.target.value })
