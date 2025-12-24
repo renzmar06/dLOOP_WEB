@@ -34,6 +34,7 @@ import {
 import PreviewModal from "@/components/PreviewModal";
 import Layout from "@/components/Layout";
 import Material from '@/components/Material/Material';
+import LocationsDashboard from "@/components/locations/LocationsDashboard";
 
 const Input = ({
   label,
@@ -547,6 +548,7 @@ export default function BusinessProfile() {
                 {[
                   ["business-info", "Business Information"],
                   ["social-settings", "Social Media & Settings"],
+                  ["locations", "Business Locations"],
                   ["working-hours", "Working Hours"],
                   ["material", "Material"],
                 ].map(([id, label]) => (
