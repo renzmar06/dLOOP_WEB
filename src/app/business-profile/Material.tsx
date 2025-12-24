@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/redux/store';
-import { fetchMaterials, deleteSubmaterial } from '@/redux/slices/materialsSlice';
+import { fetchMaterials, deleteSubmaterial, addMaterial, updateSubmaterial } from '@/redux/slices/materialsSlice';
 import toast, { Toaster } from 'react-hot-toast';
 import {
   MoreVertical,
@@ -141,7 +141,7 @@ export default function MaterialsAcceptedMain() {
         <br></br>
         <h2 className="text-sm font-semibold text-gray-700 mb-4">
           <Leaf className="w-4 h-4 inline mr-2 text-yellow-600" />
-          Materials from Database
+          Material Categories
           {materials.length > 0 && (
             <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
               {materials.length} Found
@@ -177,7 +177,7 @@ export default function MaterialsAcceptedMain() {
                         </div>
                         <div>
                           <h3 className="text-sm font-semibold text-gray-900">{material.materialname}</h3>
-                          <p className="text-xs text-gray-500">{material.materialType} - {material.unitType}</p>
+                          <p className="text-xs text-gray-500">{material.unitType}</p>
                         
                           {[...(material.submaterial || []), ...(materialSubmaterials[material._id!] || [])].length > 0 && (
                             <span className="text-xs mt-1 text-yellow-700">
@@ -208,9 +208,9 @@ export default function MaterialsAcceptedMain() {
                                 const newSubmaterial = {
                                   id: newId,
                                   submaterialname: `${material.materialname} Subtype ${currentSubs.length + 1}`,
-                                  programType: 'bag-drop',
-                                  materialType: 'crv',
-                                  unitType: 'SW - Segregated by Weight',
+                                  programType: '',
+                                  materialType: '',
+                                  unitType: '',
                                   crvPrice: 0,
                                   scrapPrice: 0,
                                   perUnit: 0,
@@ -236,7 +236,7 @@ export default function MaterialsAcceptedMain() {
                             <SubtypeCard
                               key={`${material._id}-${sub.id}-${index}`}
                               title={sub.submaterialname}
-                              description={`${sub.programType} - ${sub.materialType}`}
+                              description={sub.unitType && sub.materialType ? `${sub.unitType}` : 'Not configured'}
                               enabled={sub.enabled}
                               isEditing={editingSubtype === sub.id}
                               editTitle={editTitle}
@@ -415,19 +415,43 @@ function SubtypeCard({
           {/* <Copy className="w-4 h-4 text-gray-500 cursor-pointer" /> */}
           <Trash2 
             className="w-4 h-4 text-red-500 cursor-pointer" 
-            onClick={async () => {
-              if (submaterialData?.id?.startsWith('new-') && materialSubmaterials && setMaterialSubmaterials) {
-                const updatedSubs = materialSubmaterials[materialId!]?.filter(s => s.id !== submaterialData.id) || [];
-                setMaterialSubmaterials({
-                  ...materialSubmaterials,
-                  [materialId!]: updatedSubs
-                });
-              } else {
-                await dispatch(deleteSubmaterial({ materialId: materialId!, submaterialId: submaterialData?.id }));
-                toast.success('Submaterial deleted successfully!', {
-                  position: 'bottom-right'
-                });
-              }
+            onClick={() => {
+              toast((t) => (
+                <div className="flex flex-col gap-2">
+                  <span>Are you sure you want to delete this submaterial?</span>
+                  <div className="flex gap-2">
+                    <button
+                      className="bg-red-500 text-white px-3 py-1 rounded text-sm"
+                      onClick={async () => {
+                        toast.dismiss(t.id);
+                        if (submaterialData?.id?.startsWith('new-') && materialSubmaterials && setMaterialSubmaterials) {
+                          const updatedSubs = materialSubmaterials[materialId!]?.filter(s => s.id !== submaterialData.id) || [];
+                          setMaterialSubmaterials({
+                            ...materialSubmaterials,
+                            [materialId!]: updatedSubs
+                          });
+                        } else {
+                          await dispatch(deleteSubmaterial({ materialId: materialId!, submaterialId: submaterialData?.id }));
+                          toast.success('Submaterial deleted successfully!', {
+                            position: 'bottom-right'
+                          });
+                        }
+                      }}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      className="bg-gray-300 text-gray-700 px-3 py-1 rounded text-sm"
+                      onClick={() => toast.dismiss(t.id)}
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+              ), {
+                duration: Infinity,
+                position: 'top-center'
+              });
             }}
           />
         </div>
@@ -509,9 +533,9 @@ function SubtypeCard({
             <SelectValue placeholder="Select Unit Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="SC">SC - Segregated by Count</SelectItem>
-            <SelectItem value="SW">SW - Segregated by Weight</SelectItem>
-            <SelectItem value="SP">SP - Scrap</SelectItem>
+            <SelectItem value="Segregated by Count">SC - Segregated by Count</SelectItem>
+            <SelectItem value="Segregated by Weight">SW - Segregated by Weight</SelectItem>
+            <SelectItem value="Scrap">SP - Scrap</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -520,25 +544,25 @@ function SubtypeCard({
       {config.unitType && (
         <div>
           <label className="block text-sm font-medium text-gray-800 mb-1">
-            {config.unitType === 'SC' ? 'Per Unit *' :
-             config.unitType === 'SW' ? 'CRV Price *' :
-             config.unitType === 'SP' ? 'Scrap ($/lb) *' : 'Price *'}
+            {config.unitType === 'Segregated by Count' ? 'Per Unit *' :
+             config.unitType === 'Segregated by Weight' ? 'CRV Price *' :
+             config.unitType === 'Scrap' ? 'Scrap ($/lb) *' : 'Price *'}
           </label>
           <input
             type="number"
             value={
-              config.unitType === 'SC' ? config.perUnit :
-              config.unitType === 'SW' ? config.crvPrice :
-              config.unitType === 'SP' ? config.scrapPrice : ''
+              config.unitType === 'Segregated by Count' ? config.perUnit :
+              config.unitType === 'Segregated by Weight' ? config.crvPrice :
+              config.unitType === 'Scrap' ? config.scrapPrice : ''
             }
             onChange={(e) => {
               const value = e.target.value;
               setPriceError('');
-              if (config.unitType === 'SC') {
+              if (config.unitType === 'Segregated by Count') {
                 setConfig({ ...config, perUnit: value });
-              } else if (config.unitType === 'SW') {
+              } else if (config.unitType === 'Segregated by Weight') {
                 setConfig({ ...config, crvPrice: value });
-              } else if (config.unitType === 'SP') {
+              } else if (config.unitType === 'Scrap') {
                 setConfig({ ...config, scrapPrice: value });
               }
             }}
@@ -560,7 +584,7 @@ function SubtypeCard({
             Min Quantity
           </label>
           <input
-            type="text"
+            type="number"
             value={config.minQuantity}
             onChange={(e) =>
               setConfig({ ...config, minQuantity: e.target.value })
@@ -575,7 +599,7 @@ function SubtypeCard({
             Max Quantity
           </label>
           <input
-            type="text"
+            type="number"
             value={config.maxQuantity}
             onChange={(e) =>
               setConfig({ ...config, maxQuantity: e.target.value })
@@ -608,14 +632,14 @@ function SubtypeCard({
           className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2"
           onClick={async () => {
             // Validate price field
-            const currentPrice = config.unitType === 'SC' ? config.perUnit :
-                               config.unitType === 'SW' ? config.crvPrice :
-                               config.unitType === 'SP' ? config.scrapPrice : '';
+            const currentPrice = config.unitType === 'Segregated by Count' ? config.perUnit :
+                               config.unitType === 'Segregated by Weight' ? config.crvPrice :
+                               config.unitType === 'Scrap' ? config.scrapPrice : '';
             
             if (!currentPrice || parseFloat(currentPrice) <= 0) {
-              const fieldName = config.unitType === 'SC' ? 'Per Unit' :
-                               config.unitType === 'SW' ? 'CRV Price' :
-                               config.unitType === 'SP' ? 'Scrap Price' : 'Price';
+              const fieldName = config.unitType === 'Segregated by Count' ? 'Per Unit' :
+                               config.unitType === 'Segregated by Weight' ? 'CRV Price' :
+                               config.unitType === 'Scrap' ? 'Scrap Price' : 'Price';
               setPriceError(`${fieldName} is required and must be greater than 0`);
               toast.error(`${fieldName} is required and must be greater than 0`, {
                 position: 'bottom-right'
@@ -624,41 +648,31 @@ function SubtypeCard({
             }
             
             try {
-              const response = await fetch(`/api/materials/${materialId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  submaterialId: submaterialData?.id,
-                  config: config
-                })
-              });
+              await dispatch(updateSubmaterial({ 
+                materialId: materialId!, 
+                submaterialId: submaterialData?.id, 
+                config 
+              })).unwrap();
               
-              if (response.ok) {
-                const result = await response.json();
-                toast.success('Configuration saved successfully!', {
-                  position: 'bottom-right'
-                });
-                setShowConfig(false);
-                
-                // If it was a new submaterial, remove it from local state and refresh
-                if (submaterialData?.id?.startsWith('new-') && materialSubmaterials && setMaterialSubmaterials) {
-                  const materialIdStr = materialId!;
-                  const updatedSubs = materialSubmaterials[materialIdStr]?.filter((s: any) => s.id !== submaterialData.id) || [];
-                  setMaterialSubmaterials({
-                    ...materialSubmaterials,
-                    [materialIdStr]: updatedSubs
-                  });
-                  // Refresh materials data to get the new submaterial from database
-                  window.location.reload();
-                }
-              } else {
-                toast.error('Failed to save configuration', {
-                  position: 'bottom-right'
+              toast.success('Configuration saved successfully!', {
+                position: 'bottom-right'
+              });
+              setShowConfig(false);
+              
+              // If it was a new submaterial, remove it from local state
+              if (submaterialData?.id?.startsWith('new-') && materialSubmaterials && setMaterialSubmaterials) {
+                const materialIdStr = materialId!;
+                const updatedSubs = materialSubmaterials[materialIdStr]?.filter((s: any) => s.id !== submaterialData.id) || [];
+                setMaterialSubmaterials({
+                  ...materialSubmaterials,
+                  [materialIdStr]: updatedSubs
                 });
               }
+              // Refresh materials data
+              dispatch(fetchMaterials());
             } catch (error) {
               console.error('Error saving configuration:', error);
-              toast.error('An error occurred while saving', {
+              toast.error('Failed to save configuration', {
                 position: 'bottom-right'
               });
             }
