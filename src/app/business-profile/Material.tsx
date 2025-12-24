@@ -26,7 +26,6 @@ import {
   Box,
   FileText,
   ShoppingBag,
-  UndoIcon,
 } from "lucide-react";
 
 import { Switch } from "@/components/ui/switch";
@@ -44,8 +43,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-// import Layout from '@/components/Layout';
-import AddMaterialModal from '../business-profile/AddMaterialModal';
+import Layout from '@/components/Layout';
+import AddMaterialModal from './AddMaterialModal';
 
 
 /* -------------------- TYPES -------------------- */
@@ -99,18 +98,11 @@ export default function MaterialsAcceptedMain() {
   }, [dispatch]);
 
   return (
+    <>
       <div className="flex flex-col h-full">
     
     {/* ===== FIXED HEADER (SAME AS BUSINESS VERIFICATION) ===== */}
     <div className="flex items-center justify-between p-2 border-b border-gray-200 min-h-[75px] -mt-6">
-      <div>
-        <h1 className="text-lg font-bold text-gray-900">
-          Materials Accepted – Advanced Settings
-        </h1>
-        <p className="text-sm text-gray-500">
-          Configure material types, pricing, and payout rules for your recycling center
-        </p>
-      </div>
 
       <div className="flex items-center gap-3">
         <Button
@@ -138,6 +130,15 @@ export default function MaterialsAcceptedMain() {
 
       {/* ================= DATABASE MATERIALS ================= */}
       <div>
+        <div>
+          <h1 className="text-lg font-bold text-gray-900">
+            Materials Accepted – Advanced Settings
+          </h1>
+          <p className="text-sm text-gray-500">
+            Configure material types, pricing, and payout rules for your recycling center
+          </p>
+        </div>
+        <br></br>
         <h2 className="text-sm font-semibold text-gray-700 mb-4">
           <Leaf className="w-4 h-4 inline mr-2 text-yellow-600" />
           Materials from Database
@@ -304,6 +305,7 @@ export default function MaterialsAcceptedMain() {
     />
     <Toaster />
       </div>
+    </>
   );
 }
 
@@ -341,7 +343,6 @@ function SubtypeCard({
 }) {
   const dispatch = useDispatch<AppDispatch>();
   const [showConfig, setShowConfig] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   
   const handleToggle = (value: boolean) => {
     onToggle(value);
@@ -458,7 +459,7 @@ function SubtypeCard({
           Material Type *
         </label>
         <Select
-          value={config.materialType || undefined}
+          value={config.materialType}
           onValueChange={(value: string) =>
             setConfig({ ...config, materialType: value })
           }
@@ -468,7 +469,7 @@ function SubtypeCard({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="crv">CRV</SelectItem>
-            <SelectItem value="Scrap">Scrap</SelectItem>
+            <SelectItem value="Scrap">Scrap </SelectItem>
             <SelectItem value="WDS">WDS</SelectItem>
           </SelectContent>
         </Select>
@@ -478,7 +479,7 @@ function SubtypeCard({
           Program Type
         </label>
         <Select
-          value={config.programType || undefined}
+          value={config.programType}
           onValueChange={(value: string) =>
             setConfig({ ...config, programType: value })
           }
@@ -499,7 +500,7 @@ function SubtypeCard({
           Unit Type *
         </label>
         <Select
-          value={config.unitType || undefined}
+          value={config.unitType}
           onValueChange={(value: string) =>
             setConfig({ ...config, unitType: value })
           }
@@ -604,10 +605,8 @@ function SubtypeCard({
       {/* Save Button */}
       <div className="flex justify-end pt-3">
         <Button
-          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isSaving}
+          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2"
           onClick={async () => {
-            setIsSaving(true);
             // Validate price field
             const currentPrice = config.unitType === 'SC' ? config.perUnit :
                                config.unitType === 'SW' ? config.crvPrice :
@@ -621,7 +620,6 @@ function SubtypeCard({
               toast.error(`${fieldName} is required and must be greater than 0`, {
                 position: 'bottom-right'
               });
-              setIsSaving(false);
               return;
             }
             
@@ -651,7 +649,7 @@ function SubtypeCard({
                     [materialIdStr]: updatedSubs
                   });
                   // Refresh materials data to get the new submaterial from database
-                  dispatch(fetchMaterials());
+                  window.location.reload();
                 }
               } else {
                 toast.error('Failed to save configuration', {
@@ -663,12 +661,10 @@ function SubtypeCard({
               toast.error('An error occurred while saving', {
                 position: 'bottom-right'
               });
-            } finally {
-              setIsSaving(false);
             }
           }}
         >
-          {isSaving ? 'Saving...' : 'Save'}
+          Save
         </Button>
       </div>
     </div>

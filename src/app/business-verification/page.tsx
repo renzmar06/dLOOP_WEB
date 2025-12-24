@@ -509,9 +509,9 @@ export default function BusinessVerificationPage() {
                       !getDocumentByType("government-id") ||
                       !getDocumentByType("proof-address")
                     }
-                    onClick={() => router.push('/SubscriptionBilling')}
+                    onClick={() => router.push('/subscription-nosidebar')}
                   >
-                    Go to Subscription
+                    Next
                   </Button>
                 </div>
               </div>
