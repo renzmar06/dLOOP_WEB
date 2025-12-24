@@ -62,6 +62,24 @@ export const deleteSubmaterial = createAsyncThunk(
   }
 );
 
+export const updateSubmaterial = createAsyncThunk(
+  'materials/updateSubmaterial',
+  async ({ materialId, submaterialId, config }: { materialId: string; submaterialId: string; config: any }) => {
+    const response = await fetch(`/api/materials/${materialId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ submaterialId, config }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to update submaterial');
+    }
+    
+    const data = await response.json();
+    return data;
+  }
+);
+
 const materialsSlice = createSlice({
   name: 'materials',
   initialState,
@@ -102,6 +120,17 @@ const materialsSlice = createSlice({
         if (material) {
           material.submaterial = material.submaterial.filter(sub => sub.id !== submaterialId);
         }
+      })
+      .addCase(updateSubmaterial.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateSubmaterial.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(updateSubmaterial.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Failed to update submaterial';
       });
   },
 });

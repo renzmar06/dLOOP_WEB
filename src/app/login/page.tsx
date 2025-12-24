@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff,Leaf } from "lucide-react";
 import { LoginRequest } from '@/models/User';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { loginUser, clearError } from '@/redux/slices/authSlice';
@@ -32,9 +32,15 @@ export default function Login() {
         {/* Left side (Form) */}
         <div className="w-full md:w-1/2 p-8 md:p-12">
           {/* Logo */}
-          <div className="flex items-center mb-6">
-            <img src="/images/logo.png" alt="Logo" className="h-16 w-auto mr-2" />
+          <div className="flex items-center space-x-2">
+          <div className="w-10 h-9 bg-gradient-to-br from-teal-500 to-green-500 rounded-lg flex items-center justify-center">
+            <Leaf className="text-white" size={20} />
           </div>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">dLoop</h1>
+            <p className="text-xs text-gray-500"> Partner Business</p>
+          </div>
+        </div>
 
           <h2 className="text-3xl font-bold mb-2 text-gray-900">Welcome to dloop</h2>
           <p className="text-gray-500 mb-8">Please login to your account</p>
@@ -126,7 +132,7 @@ export default function Login() {
         {/* Right side (Image) */}
         <div className="w-full md:w-1/2 hidden md:block">
           <img
-            src="/image/login-page.jpeg"
+            src="/image/Dloop-business.jpeg"
             alt="Login Visual"
             className="h-full w-full object-cover"
           />
