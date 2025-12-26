@@ -19,15 +19,15 @@ export async function GET(request: NextRequest) {
   try {
     const user = await getUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     await connectDB();
     const subscriptions = await SubscriptionBilling.find({ userId: user.userId });
     
-    return NextResponse.json(subscriptions);
+    return NextResponse.json({ success: true, message: 'Subscriptions fetched successfully', data: subscriptions });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch subscriptions' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Failed to fetch subscriptions' }, { status: 500 });
   }
 }
 
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const subscriptionData = await request.json();
@@ -59,9 +59,9 @@ export async function POST(request: NextRequest) {
     const result = await subscription.save();
     console.log('Saved subscription result:', result);
     
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json({ success: true, message: 'Subscription created successfully', data: result }, { status: 201 });
   } catch (error) {
     console.error('Error saving subscription:', error);
-    return NextResponse.json({ error: 'Failed to save subscription' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Failed to save subscription' }, { status: 500 });
   }
 }

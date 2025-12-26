@@ -2,14 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Check,
   CreditCard,
   Crown,
   Download,
-  Settings,
   X,
   AlertTriangle,
-  Zap,
   Lock,
   Edit,
   Plus,
@@ -52,6 +49,13 @@ export default function SubscriptionBillingPage() {
   useEffect(() => {
     dispatch(fetchBillingInfo());
     dispatch(fetchSubscriptions());
+
+    // Check for payment success flag
+    const paymentSuccess = localStorage.getItem("paymentSuccess");
+    if (paymentSuccess === "true") {
+      toast.success("Payment successful! Your plan has been upgraded.");
+      localStorage.removeItem("paymentSuccess");
+    }
   }, [dispatch]);
 
   // Refresh data when component mounts or when returning from other pages
@@ -61,8 +65,20 @@ export default function SubscriptionBillingPage() {
     };
 
     window.addEventListener("focus", handleFocus);
+
+    // Force refresh subscriptions data on page load
+    dispatch(fetchSubscriptions());
+
     return () => window.removeEventListener("focus", handleFocus);
   }, [dispatch]);
+
+  // Additional refresh when subscriptions change
+  useEffect(() => {
+    if (subscriptions.length > 0) {
+      // Force re-render when subscriptions update
+      console.log("Subscriptions updated:", subscriptions);
+    }
+  }, [subscriptions]);
 
   const getCurrentSubscription = () => {
     // Get the most recent subscription (latest selectedAt date)
@@ -89,13 +105,11 @@ export default function SubscriptionBillingPage() {
       planPrice: "$0",
       status: "active",
       selectedAt: new Date().toISOString(),
+      planExpiryDate: new Date().toISOString(),
     };
   };
 
   const hasSelectedPlanThisMonth = () => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
     const currentPlan = getCurrentSubscription()?.planName;
 
     // Always allow changes from Free plan
@@ -103,19 +117,13 @@ export default function SubscriptionBillingPage() {
       return false;
     }
 
-    // If current plan is Pro, allow upgrade to Elite only if no Elite was selected this month
+    // Allow Pro to Elite upgrade, block Elite from any changes
     if (currentPlan === "Pro") {
-      return subscriptions.some(sub => {
-        const subDate = new Date(sub.selectedAt);
-        return subDate.getMonth() === currentMonth && 
-               subDate.getFullYear() === currentYear &&
-               sub.planName === "Elite";
-      });
+      return false; // Allow Pro users to upgrade to Elite
     }
 
-    // If current plan is Elite, block all changes
     if (currentPlan === "Elite") {
-      return true;
+      return true; // Block Elite users from any changes (no downgrades)
     }
 
     return false;
@@ -136,13 +144,10 @@ export default function SubscriptionBillingPage() {
 
   const getNextBillingDate = () => {
     const currentSub = getCurrentSubscription();
-    if (!currentSub) return "N/A";
+    if (!currentSub || !currentSub.planExpiryDate) return "N/A";
 
-    const purchaseDate = new Date(currentSub.selectedAt);
-    const nextBilling = new Date(purchaseDate);
-    nextBilling.setMonth(nextBilling.getMonth() + 1);
-
-    return formatDate(nextBilling.toISOString());
+    // Use the planExpiryDate as the next billing date
+    return formatDate(currentSub.planExpiryDate);
   };
 
   const getBillingHistory = () => {
@@ -177,9 +182,19 @@ export default function SubscriptionBillingPage() {
           isDefault,
         })
       ).unwrap();
+
+      // Reset form and close modal
+      setCardNumber("");
+      setExpiration("");
+      setCvc("");
+      setCardholderName("");
+      setIsDefault(true);
       setShowUpdatePaymentModal(false);
+
+      toast.success("Payment method saved successfully!");
     } catch (error) {
       console.error("Failed to update payment method:", error);
+      toast.error("Failed to save payment method");
     }
   };
 
@@ -211,7 +226,7 @@ export default function SubscriptionBillingPage() {
   const handleCancelSubscription = async () => {
     try {
       const currentSub = getCurrentSubscription();
-      if (!currentSub || !('_id' in currentSub) || !currentSub._id) {
+      if (!currentSub || !("_id" in currentSub) || !currentSub._id) {
         toast.error("No active subscription to cancel");
         return;
       }
@@ -310,6 +325,8 @@ export default function SubscriptionBillingPage() {
                 <button
                   onClick={() => {
                     if (canChangePlan()) {
+                      // Set flag to indicate coming from Change Plan button
+                      localStorage.setItem("fromChangePlan", "true");
                       router.push("/subscription-billing");
                     }
                   }}
@@ -319,7 +336,11 @@ export default function SubscriptionBillingPage() {
                       ? "bg-white text-amber-600 hover:bg-gray-50"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
-                  title={!canChangePlan() ? "You can only change plans once per month" : ""}
+                  title={
+                    !canChangePlan()
+                      ? "You can only change plans once per month"
+                      : ""
+                  }
                 >
                   Change Plan
                 </button>
@@ -424,7 +445,18 @@ export default function SubscriptionBillingPage() {
             </div>
 
             <button
-              onClick={() => setShowUpdatePaymentModal(true)}
+              onClick={() => {
+                const currentPayment = getCurrentPaymentMethod();
+                if (currentPayment) {
+                  // Pre-populate form for editing
+                  setCardNumber(currentPayment.cardNumber || "");
+                  setExpiration(currentPayment.expiration || "");
+                  setCvc(currentPayment.cvc || ""); // Include CVC for editing
+                  setCardholderName(currentPayment.cardholderName || "");
+                  setIsDefault(currentPayment.isDefault || true);
+                }
+                setShowUpdatePaymentModal(true);
+              }}
               disabled={billingLoading}
               className={`w-full py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition mb-4 flex items-center justify-center gap-2 ${
                 billingLoading ? "opacity-50 cursor-not-allowed" : ""
@@ -529,7 +561,7 @@ export default function SubscriptionBillingPage() {
                   >
                     Keep Subscription
                   </button>
-                  <button 
+                  <button
                     onClick={handleCancelSubscription}
                     className="flex-1 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
                   >
