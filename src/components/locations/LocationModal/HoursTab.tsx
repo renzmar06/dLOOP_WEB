@@ -144,7 +144,7 @@ export default function HoursTab({ editingLocation, onNext, onBack }: Props) {
                     [dayKey]: { ...prev[dayKey], open: e.target.checked },
                   }))
                 }
-                className="w-5 h-5 text-teal-600 rounded focus:ring-teal-500"
+                className="w-5 h-5 text-yellow-600 rounded focus:ring-yellow-500"
               />
               <span className="text-sm text-gray-600 w-12">Open</span>
 
@@ -194,7 +194,7 @@ export default function HoursTab({ editingLocation, onNext, onBack }: Props) {
         <button
           type="button"
           onClick={onNext}
-          className="px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-medium transition-colors"
+          className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors"
         >
           Next: Materials →
         </button>

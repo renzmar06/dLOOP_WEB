@@ -84,7 +84,7 @@ export default function LocationCard({ location, onEdit, onRefresh }: Props) {
           </div>
           <div className="flex justify-between pt-3 border-t">
             <span className="text-sm text-gray-600">Payouts Today</span>
-            <span className="text-2xl font-bold text-teal-600">
+            <span className="text-2xl font-bold text-yellow-600">
               ${location.payouts.toLocaleString()}
             </span>
           </div>

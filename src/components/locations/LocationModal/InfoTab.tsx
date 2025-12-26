@@ -208,7 +208,7 @@ export default function InfoTab({ editingLocation, onNext }: Props) {
           type="text"
           value={formData.name || ''}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
           required
         />
       </div>
@@ -224,7 +224,7 @@ export default function InfoTab({ editingLocation, onNext }: Props) {
           value={formData.address || ''}
           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
           placeholder="Start typing address..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
           required
         />
         <p className="text-xs text-gray-500 mt-1">Google Places autocomplete enabled</p>
@@ -298,7 +298,7 @@ export default function InfoTab({ editingLocation, onNext }: Props) {
         <button
           onClick={onNext}
           disabled={!isFormValid}
-          className="px-6 py-3 bg-teal-500 hover:bg-teal-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+          className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
         >
           Next: Hours →
         </button>

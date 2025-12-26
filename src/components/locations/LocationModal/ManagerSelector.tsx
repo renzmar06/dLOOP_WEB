@@ -37,7 +37,7 @@ export default function ManagerSelector({ selected, onChange, availableManagers 
                 className="px-4 py-3 flex items-center gap-3 hover:bg-gray-50 cursor-pointer text-sm"
               >
                 <div className="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center">
-                  {isSelected && <div className="w-3 h-3 bg-teal-500 rounded-sm" />}
+                  {isSelected && <div className="w-3 h-3 bg-yellow-500 rounded-sm" />}
                 </div>
                 {manager}
               </div>

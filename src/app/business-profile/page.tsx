@@ -507,7 +507,7 @@ export default function BusinessProfile() {
   return (
     <Layout>
       {/* Fixed Header */}
-      <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 min-h-[75px] -m-6 mb-6">
+      <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 mb-6">
         <div className="flex items-center space-x-2">
           <div>
             <h1 className="text-lg font-bold text-gray-900">
