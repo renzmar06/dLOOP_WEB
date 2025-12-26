@@ -14,7 +14,7 @@ import {
   setEstimating, 
   setCreating 
 } from '@/redux/slices/campaignDraftSlice';
-import { createCampaign, getEstimate } from '@/redux/slices/campaignsSlice';
+import { createCampaign, getEstimate, updateCampaign } from '@/redux/slices/campaignsSlice';
 import { X, ChevronRight, ChevronLeft } from 'lucide-react';
 import Stepper from './Stepper';
 import BudgetSlider from './BudgetSlider';
@@ -25,10 +25,11 @@ interface BoostDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   boostType: string;
+  editingCampaignId?: string | null;
   variant?: 'compact' | 'expanded';
 }
 
-export default function BoostDrawer({ isOpen, onClose, boostType, variant = 'expanded' }: BoostDrawerProps) {
+export default function BoostDrawer({ isOpen, onClose, boostType, editingCampaignId, variant = 'expanded' }: BoostDrawerProps) {
   const dispatch = useDispatch<AppDispatch>();
   const campaignDraft = useSelector((state: RootState) => state.campaignDraft);
   const currentStep = campaignDraft.step;
@@ -105,10 +106,18 @@ export default function BoostDrawer({ isOpen, onClose, boostType, variant = 'exp
         radiusKm: campaignDraft.radiusKm,
         startDate: campaignDraft.startDate
       };
-      await dispatch(createCampaign(campaignData)).unwrap();
+      
+      if (editingCampaignId) {
+        // Update existing campaign
+        console.log('Updating campaign with ID:', editingCampaignId);
+        await dispatch(updateCampaign({ id: editingCampaignId, ...campaignData })).unwrap();
+      } else {
+        // Create new campaign
+        await dispatch(createCampaign(campaignData)).unwrap();
+      }
       onClose();
     } catch (error) {
-      console.error('Failed to create campaign:', error);
+      console.error('Failed to save campaign:', error);
     } finally {
       dispatch(setCreating(false));
     }
@@ -164,7 +173,7 @@ export default function BoostDrawer({ isOpen, onClose, boostType, variant = 'exp
         <div className={`relative ${styles.header.container} flex items-center flex-shrink-0`}>
           <div className="flex items-center justify-between w-full">
             <div>
-              <h1 className={styles.header.title}>Create Boost Campaign</h1>
+              <h1 className={styles.header.title}>{editingCampaignId ? 'Edit Campaign' : 'Create Boost Campaign'}</h1>
               <p className={styles.header.subtitle}>Step {currentStep} of {steps.length}</p>
             </div>
             <button
@@ -280,7 +289,7 @@ export default function BoostDrawer({ isOpen, onClose, boostType, variant = 'exp
               <div className={styles.stepSpacing}>
                 <div>
                   <h2 className={styles.stepTitle}>Estimated campaign results</h2>
-                  <p className={styles.stepDesc}>Based on your budget and targeting, here's what you can expect from your campaign.</p>
+                  <p className={styles.stepDesc}>Based on your budget and targeting, here what you can expect from your campaign.</p>
                   
                   <div className="grid grid-cols-1 gap-4">
                     <ResultMetricCard
@@ -323,7 +332,7 @@ export default function BoostDrawer({ isOpen, onClose, boostType, variant = 'exp
               <div className={styles.stepSpacing}>
                 <div>
                   <h2 className={styles.stepTitle}>Target your audience</h2>
-                  <p className={styles.stepDesc}>Define who should see your boosted content and where they're located.</p>
+                  <p className={styles.stepDesc}>Define who should see your boosted content and where they located.</p>
                   
                   <div className={styles.stepSpacing}>
                     <BudgetSlider
@@ -395,9 +404,24 @@ export default function BoostDrawer({ isOpen, onClose, boostType, variant = 'exp
             ) : (
               <button
                 onClick={handleLaunch}
-                className={`${styles.button} bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl hover:shadow-lg hover:from-emerald-700 hover:to-green-700 transition-all duration-200 font-semibold`}
+                className={`${styles.button} rounded-xl transition-all duration-200 font-semibold ${
+                  editingCampaignId 
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105'
+                    : 'bg-gradient-to-r from-emerald-600 to-green-600 text-white hover:shadow-lg hover:from-emerald-700 hover:to-green-700 transform hover:scale-105'
+                }`}
               >
-                🚀 Launch Boost Campaign
+                {editingCampaignId ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Update Campaign
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    🚀 Launch Boost Campaign
+                  </span>
+                )}
               </button>
             )}
           </div>

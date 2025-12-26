@@ -1,26 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Campaign from '@/models/Campaign';
-import jwt from 'jsonwebtoken';
 
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    // Get user from token
-    const token = request.cookies.get('token')?.value;
-    if (!token) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
-    const userId = decoded.userId;
-
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
 
     // Build query
-    const query: any = { userId };
+    const query: any = {};
     if (status && status !== 'all') {
       query.status = status;
     }
@@ -35,8 +25,9 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
+    console.error('Fetch campaigns error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch campaigns' },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to fetch campaigns' },
       { status: 500 }
     );
   }

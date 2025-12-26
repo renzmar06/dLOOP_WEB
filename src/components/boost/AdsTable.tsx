@@ -1,4 +1,5 @@
-import { MoreVertical, Play, Pause } from 'lucide-react';
+import { MoreVertical, Play, Pause, Edit, Zap } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import StatusBadge from './StatusBadge';
 import TrendSparkline from './TrendSparkline';
 
@@ -15,10 +16,26 @@ interface Campaign {
 interface AdsTableProps {
   campaigns: Campaign[];
   onStatusChange: (campaignId: string, status: string) => void;
+  onCreateAd: () => void;
+  onEditCampaign?: (campaignId: string) => void;
+  onBoostCampaign?: (campaignId: string) => void;
   loading?: boolean;
 }
 
-export default function AdsTable({ campaigns, onStatusChange, loading }: AdsTableProps) {
+export default function AdsTable({ campaigns, onStatusChange, onCreateAd, onEditCampaign, onBoostCampaign, loading }: AdsTableProps) {
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   if (loading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
@@ -38,7 +55,10 @@ export default function AdsTable({ campaigns, onStatusChange, loading }: AdsTabl
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Active Campaigns</h3>
-        <button className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+        <button 
+          onClick={onCreateAd}
+          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+        >
           Create New Ad
         </button>
       </div>
@@ -134,9 +154,67 @@ export default function AdsTable({ campaigns, onStatusChange, loading }: AdsTabl
                           <Play className="w-4 h-4" />
                         </button>
                       )}
-                      <button className="text-gray-400 hover:text-gray-600 transition-colors duration-150">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
+                      <div className="relative dropdown-container">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log('3-dot clicked for campaign:', campaign._id);
+                            setOpenDropdown(openDropdown === campaign._id ? null : campaign._id);
+                          }}
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                          title="More actions"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                        {openDropdown === campaign._id && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setOpenDropdown(null)} />
+                            <div className="absolute right-8 top-0 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-20 transform transition-all duration-150 ease-out">
+                              <div className="py-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    console.log('Edit clicked for campaign:', campaign._id);
+                                    onEditCampaign?.(campaign._id);
+                                    setOpenDropdown(null);
+                                  }}
+                                  className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left transition-colors duration-150"
+                                >
+                                  <Edit className="w-4 h-4 mr-2 text-blue-500" />
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    console.log('Pause/Resume clicked for campaign:', campaign._id);
+                                    onStatusChange(campaign._id, campaign.status === 'active' ? 'paused' : 'active');
+                                    setOpenDropdown(null);
+                                  }}
+                                  className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left transition-colors duration-150"
+                                >
+                                  {campaign.status === 'active' ? (
+                                    <><Pause className="w-4 h-4 mr-2 text-orange-500" />Pause</>
+                                  ) : (
+                                    <><Play className="w-4 h-4 mr-2 text-green-500" />Resume</>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    console.log('Boost clicked for campaign:', campaign._id);
+                                    onBoostCampaign?.(campaign._id);
+                                    setOpenDropdown(null);
+                                  }}
+                                  className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left transition-colors duration-150"
+                                >
+                                  <Zap className="w-4 h-4 mr-2 text-purple-500" />
+                                  Boost
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>

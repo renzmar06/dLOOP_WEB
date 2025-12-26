@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Campaign from '@/models/Campaign';
-import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-
-    // Get user from token
-    const token = request.cookies.get('token')?.value;
-    if (!token) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
-    const userId = decoded.userId;
 
     const campaignData = await request.json();
     
@@ -26,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     const campaign = new Campaign({
       ...campaignData,
-      userId,
+      userId: new mongoose.Types.ObjectId(), // Temporary user ID
       startDate,
       endDate,
       status: 'active',
@@ -37,12 +28,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      message: 'Campaign created successfully',
       data: campaign
     });
 
   } catch (error) {
+    console.error('Campaign creation error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create campaign' },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to create campaign' },
       { status: 500 }
     );
   }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import Image from "next/image";
 import { AppDispatch, RootState } from "@/redux/store";
 import {
   fetchBusinesses,
@@ -579,9 +580,11 @@ export default function BusinessProfile() {
                     <div className="flex justify-center">
                       <div className="relative w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 cursor-pointer hover:bg-gray-100">
                         {form.logo ? (
-                          <img
+                          <Image
                             src={form.logo}
                             alt="Logo"
+                            width={96}
+                            height={96}
                             className="w-full h-full object-cover rounded-lg"
                           />
                         ) : (
@@ -877,8 +880,11 @@ export default function BusinessProfile() {
                       <div className="relative h-44 bg-gradient-to-r from-yellow-400 to-yellow-600">
                         <div className="absolute -bottom-8 left-5 w-20 h-20 rounded-3xl bg-white shadow-lg border overflow-hidden">
                           {form.logo && (
-                            <img
+                            <Image
                               src={form.logo}
+                              alt="Business Logo"
+                              width={80}
+                              height={80}
                               className="w-full h-full object-cover"
                             />
                           )}

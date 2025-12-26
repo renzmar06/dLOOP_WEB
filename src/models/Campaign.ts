@@ -8,7 +8,7 @@ const campaignSchema = new mongoose.Schema({
   },
   boostType: {
     type: String,
-    enum: ['business-profile', 'promotion', 'map-pin', 'social-post'],
+    enum: ['business-profile', 'promotion', 'map-pin', 'social-post', 'campaign-manager'],
     required: true
   },
   dailyBudget: {
@@ -47,7 +47,7 @@ const campaignSchema = new mongoose.Schema({
   },
   endDate: {
     type: Date,
-    required: true
+    required: false
   },
   title: {
     type: String,
@@ -61,4 +61,9 @@ const campaignSchema = new mongoose.Schema({
   timestamps: true
 });
 
-export default mongoose.models.Campaign || mongoose.model('Campaign', campaignSchema);
+// Clear model cache to ensure schema updates are applied
+if (mongoose.models.Campaign) {
+  delete mongoose.models.Campaign;
+}
+
+export default mongoose.model('Campaign', campaignSchema);
