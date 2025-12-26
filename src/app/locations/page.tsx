@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "Add, edit, and manage your business locations.",
 };
 
-export default function LocationsPage(): JSX.Element {
+export default function LocationsPage(): React.ReactElement {
   return (
     <Layout>
       <LocationsDashboard />

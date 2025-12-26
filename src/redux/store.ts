@@ -3,8 +3,8 @@ import authReducer from './slices/authSlice';
 import materialsReducer from './slices/materialsSlice';
 import businessverificationReducer from './slices/businessVerificationSlice';
 import businessReducer from './slices/businessSlice';
-import campaignDraftReducer from './slices/campaignDraftSlice';
-import campaignsReducer from './slices/campaignsSlice';
+import billingInformationReducer from'./slices/billingInformationSlice';
+import SubscriptionBillingReducer from './slices/subscriptionBillingSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,8 +12,8 @@ export const store = configureStore({
     materials: materialsReducer,
     businessVerification: businessverificationReducer,
     business: businessReducer,
-    campaignDraft: campaignDraftReducer,
-    campaigns: campaignsReducer,
+    billingInformation: billingInformationReducer,
+    subscriptionBilling: SubscriptionBillingReducer,
   },
 });
 

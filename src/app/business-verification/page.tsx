@@ -25,6 +25,7 @@ import {
   Rocket,
   Loader2,
 } from "lucide-react";
+import Layout from "@/components/Layout";
 
 export default function BusinessVerificationPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -36,10 +37,33 @@ export default function BusinessVerificationPage() {
     [key: string]: boolean;
   }>({});
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const [showSidebar, setShowSidebar] = useState(false);
 
   useEffect(() => {
     dispatch(fetchDocuments());
+    checkBusinessProfileCompletion();
   }, [dispatch]);
+
+  const checkBusinessProfileCompletion = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/business", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      
+      if (data.success && data.data.length > 0) {
+        const business = data.data[0];
+        // Check if required fields are filled
+        const isComplete = business.businessName && business.phone && business.email;
+        setShowSidebar(isComplete);
+      }
+    } catch (error) {
+      console.error("Failed to check business profile:", error);
+    }
+  };
 
   const handleFileUpload = async (documentType: string, file: File) => {
     // Validate file type
@@ -346,25 +370,44 @@ export default function BusinessVerificationPage() {
     );
   };
 
-  return (
+  const PageContent = () => (
     <div className="flex flex-col h-full">
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 min-h-[75px] shadow-sm">
-        <div className="flex items-center space-x-2">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">
-              Business Verification
-            </h1>
-            <p className="text-sm text-gray-500">
-              Verify your business to unlock full access and build customer
-              trust
-            </p>
+      {/* Fixed Header - only when no sidebar */}
+      {!showSidebar && (
+        <div className="fixed top-0 left-0 right-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 min-h-[75px] shadow-sm">
+          <div className="flex items-center space-x-2">
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">
+                Business Verification
+              </h1>
+              <p className="text-sm text-gray-500">
+                Verify your business to unlock full access and build customer
+                trust
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Header for sidebar layout */}
+      {showSidebar && (
+        <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 min-h-[75px] shadow-sm">
+          <div className="flex items-center space-x-2">
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">
+                Business Verification
+              </h1>
+              <p className="text-sm text-gray-500">
+                Verify your business to unlock full access and build customer
+                trust
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto p-6 pt-[91px]">
+      <div className={`flex-1 overflow-auto p-6 ${!showSidebar ? 'pt-[91px]' : ''}`}>
         <div className="max-w-4xl mx-auto">
           <div className="space-y-6">
             {/* Status Banner */}
@@ -509,9 +552,9 @@ export default function BusinessVerificationPage() {
                       !getDocumentByType("government-id") ||
                       !getDocumentByType("proof-address")
                     }
-                    onClick={() => router.push('/subscription-nosidebar')}
+                    onClick={() => router.push("/subscription-billing")}
                   >
-                    Next
+                    Go to Subscription
                   </Button>
                 </div>
               </div>
@@ -520,5 +563,13 @@ export default function BusinessVerificationPage() {
         </div>
       </div>
     </div>
+  );
+
+  return showSidebar ? (
+    <Layout>
+      <PageContent />
+    </Layout>
+  ) : (
+    <PageContent />
   );
 }
