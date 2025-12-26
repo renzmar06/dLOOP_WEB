@@ -28,7 +28,7 @@ const promotionSchema = new mongoose.Schema({
     required: true
   },
   bonusValue: {
-    type: Number,
+    type: String,
     required: true
   },
   termsConditions: {

@@ -87,12 +87,17 @@ export default function Sidebar() {
       label: 'Subscription & Billing',
       href: '/subscription-billing'
     },
-
     {
       id: 'BillingInformation',
       icon: CreditCard,
       label: 'Billing Information',
       href: '/billing-information'
+    },
+    {
+      id: 'coupan&promotion',
+      icon: CreditCard,
+      label: 'coupan & promotion',
+      href: '/coupan&promotion'
     }
     
   ];  
