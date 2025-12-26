@@ -58,7 +58,7 @@ export default function LocationModal({ isOpen, onClose, editingLocation, onSucc
             onClick={() => setActiveTab('info')}
             className={`px-8 py-4 text-sm font-medium transition-colors ${
               activeTab === 'info'
-                ? 'text-teal-600 border-b-2 border-teal-600'
+                ? 'text-yellow-600 border-b-2 border-yellow-600'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -69,7 +69,7 @@ export default function LocationModal({ isOpen, onClose, editingLocation, onSucc
             onClick={() => setActiveTab('hours')}
             className={`px-8 py-4 text-sm font-medium transition-colors ${
               activeTab === 'hours'
-                ? 'text-teal-600 border-b-2 border-teal-600'
+                ? 'text-yellow-600 border-b-2 border-yellow-600'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -80,7 +80,7 @@ export default function LocationModal({ isOpen, onClose, editingLocation, onSucc
             onClick={() => setActiveTab('materials')}
             className={`px-8 py-4 text-sm font-medium transition-colors ${
               activeTab === 'materials'
-                ? 'text-teal-600 border-b-2 border-teal-600'
+                ? 'text-yellow-600 border-b-2 border-yellow-600'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >

@@ -81,7 +81,7 @@ export default function MaterialsTab({ editingLocation, onBack, onClose, onSucce
           </button>
           <button
             onClick={handleSubmit}
-            className="px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-medium"
+            className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium"
           >
             {editingLocation ? 'Save Changes' : 'Add Location'}
           </button>
