@@ -32,6 +32,7 @@ export default function SubscriptionBillingPage() {
           Authorization: `Bearer ${token}`,
         },
       });
+      
       const data = await response.json();
 
       if (data.success && data.data.length > 0) {
