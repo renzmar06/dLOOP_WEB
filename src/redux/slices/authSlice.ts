@@ -11,15 +11,17 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  isLoading: boolean;
+  loading: boolean;
   error: string | null;
+  resetMessage: string | null;
 }
 
 const initialState: AuthState = {
   user: null,
-  isLoading: false,
+  loading: false,
   error: null,
-};
+  resetMessage: null,
+};;
 
 export const registerUser = createAsyncThunk(
   'auth/register',
@@ -30,6 +32,11 @@ export const registerUser = createAsyncThunk(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
       });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        return rejectWithValue(data.message || 'Registration failed');
+      }
       
       const data = await response.json();
       
@@ -54,6 +61,11 @@ export const loginUser = createAsyncThunk(
         body: JSON.stringify(userData),
       });
       
+      if (!response.ok) {
+        const data = await response.json();
+        return rejectWithValue(data.message || 'Login failed');
+      }
+      
       const data = await response.json();
       
       if (!data.success) {
@@ -67,12 +79,95 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+export const validateResetToken = createAsyncThunk(
+  'auth/validateResetToken',
+  async (token: string, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`/api/validate-reset-token?token=${token}`);
+      
+      if (!response.ok) {
+        const data = await response.json();
+        return rejectWithValue(data.message || 'Token validation failed');
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        return rejectWithValue(data.message);
+      }
+      
+      return data;
+    } catch (error) {
+      return rejectWithValue('Token validation failed');
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async (resetData: { token: string; password: string; confirmPassword: string }, { rejectWithValue }) => {
+    try {
+      const response = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(resetData),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        return rejectWithValue(data.message || 'Password reset failed');
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        return rejectWithValue(data.message);
+      }
+      
+      return data;
+    } catch (error) {
+      return rejectWithValue('Password reset failed');
+    }
+  }
+);
+
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email: string, { rejectWithValue }) => {
+    try {
+      const response = await fetch('/api/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        return rejectWithValue(data.message || 'Failed to send reset link');
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        return rejectWithValue(data.message);
+      }
+      
+      return data;
+    } catch (error) {
+      return rejectWithValue('Failed to send reset link');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
     clearError: (state) => {
       state.error = null;
+    },
+    clearResetMessage: (state) => {
+      state.resetMessage = null;
     },
     logout: (state) => {
       state.user = null;
@@ -100,11 +195,11 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(registerUser.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.loading = false;
         state.user = action.payload.user;
         // Store in localStorage
         if (typeof window !== 'undefined') {
@@ -113,15 +208,15 @@ const authSlice = createSlice({
         }
       })
       .addCase(registerUser.rejected, (state, action) => {
-        state.isLoading = false;
+        state.loading = false;
         state.error = action.payload as string || 'Registration failed';
       })
       .addCase(loginUser.pending, (state) => {
-        state.isLoading = true;
+        state.loading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.isLoading = false;
+        state.loading = false;
         state.user = action.payload.user;
         // Store in localStorage
         if (typeof window !== 'undefined') {
@@ -130,11 +225,48 @@ const authSlice = createSlice({
         }
       })
       .addCase(loginUser.rejected, (state, action) => {
-        state.isLoading = false;
+        state.loading = false;
         state.error = action.payload as string || 'Login failed';
+      })
+      .addCase(validateResetToken.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(validateResetToken.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(validateResetToken.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string || 'Token validation failed';
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.resetMessage = null;
+      })
+      .addCase(resetPassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.resetMessage = action.payload.message;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string || 'Password reset failed';
+      })
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.resetMessage = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.resetMessage = action.payload.message;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string || 'Failed to send reset link';
       });
   },
 });
 
-export const { clearError, logout, loadUserFromStorage } = authSlice.actions;
+export const { clearError, clearResetMessage, logout, loadUserFromStorage } = authSlice.actions;
 export default authSlice.reducer;

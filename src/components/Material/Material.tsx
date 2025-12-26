@@ -107,7 +107,7 @@ export default function MaterialsAcceptedMain() {
       <div className="flex items-center gap-3">
         <Button
           variant="outline"
-          className="flex items-center gap-2"
+          className="flex bg-yellow-500 hover:bg-yellow-600 text-white hover:text-white items-center gap-2"
           onClick={() => setShowAddModal(true)}
         >
           <Plus className="w-4 h-4" />

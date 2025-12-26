@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LocationsDashboard from "@/components/locations/LocationsDashboard";
 import Layout from "@/components/Layout";
+import { JSX } from "react";
 
 export const metadata: Metadata = {
   title: "Locations Dashboard",

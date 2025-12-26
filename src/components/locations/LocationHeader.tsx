@@ -17,7 +17,7 @@ export default function LocationHeader({ onAddNew }: Props) {
         </div>
         <button
           onClick={onAddNew}
-          className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md flex items-center gap-2 font-medium transition-colors"
+          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md flex items-center gap-2 font-medium transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add New Location

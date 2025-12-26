@@ -12,7 +12,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [success, setSuccess] = useState('');
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector((state) => state.auth);
+  const { loading, error } = useAppSelector((state) => state.auth);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,7 +92,7 @@ export default function Login() {
                 <input type="checkbox" className="mr-2 accent-orange-500" disabled />
                 <span className="text-gray-600 text-sm">Remember me</span>
               </label>
-              <a href="#" className="text-blue-600 text-sm hover:underline">
+              <a href="/forgot-password" className="text-blue-600 text-sm hover:underline">
                 Forgot Password?
               </a>
             </div>
@@ -114,17 +114,17 @@ export default function Login() {
             {/* Login button */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition cursor-pointer"
               suppressHydrationWarning
             >
-              {isLoading ? 'Logging in...' : 'Log In'}
+              {loading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
 
           {/* Links */}
           <div className="flex justify-center text-sm text-gray-600 mt-6">
-            <span>Don't have an account? </span>
+            <span>Don&apos;t have an account? </span>
             <a href="/register" className="text-blue-600 hover:underline ml-1">Sign Up</a>
           </div>
         </div>
