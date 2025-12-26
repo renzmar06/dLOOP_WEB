@@ -20,7 +20,7 @@ const promotionSchema = new mongoose.Schema({
   },
   materialSelection: {
     type: String,
-    required: false
+    required: true
   },
   bonusType: {
     type: String,

@@ -85,9 +85,9 @@ export default function SubscriptionBillingPage() {
         "Event participation",
       ],
       buttonText: "Upgrade to Pro",
-      buttonStyle: "bg-teal-500 text-white hover:bg-teal-600",
+      buttonStyle: "bg-yellow-500 text-white hover:bg-yellow-600",
       popular: true,
-      gradient: "from-emerald-500 to-teal-500",
+      gradient: "from-yellow-500 to-yellow-500",
     },
     {
       id: "elite",
@@ -179,7 +179,7 @@ export default function SubscriptionBillingPage() {
     <Layout>
       <div className="min-h-screen bg-gray-50 px-5 py-6 space-y-8">
         {/* Current Plan */}
-        <div className="bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl p-6 text-white shadow">
+        <div className="bg-gradient-to-r from-yellow-500 to-yellow-500 rounded-xl p-6 text-white shadow">
           <div className="flex justify-between">
             <div>
               <h3 className="opacity-90">Current Plan</h3>
@@ -209,7 +209,7 @@ export default function SubscriptionBillingPage() {
               onClick={() => setBillingCycle(c as any)}
               className={`px-6 py-2 rounded ${
                 billingCycle === c
-                  ? "bg-teal-500 text-white"
+                  ? "bg-yellow-500 text-white"
                   : "bg-white border"
               }`}
             >
@@ -225,7 +225,7 @@ export default function SubscriptionBillingPage() {
               key={plan.id}
               className={`bg-white border rounded-xl p-6 ${
                 isCurrentPlan(plan)
-                  ? "border-teal-500 shadow"
+                  ? "border-yellow-500 shadow"
                   : "border-gray-200"
               }`}
             >
@@ -252,7 +252,7 @@ export default function SubscriptionBillingPage() {
               <ul className="mt-4 space-y-2">
                 {plan.features.map((f) => (
                   <li key={f} className="flex gap-2 text-sm">
-                    <Check className="w-4 h-4 text-teal-500" />
+                    <Check className="w-4 h-4 text-yellow-500" />
                     {f}
                   </li>
                 ))}

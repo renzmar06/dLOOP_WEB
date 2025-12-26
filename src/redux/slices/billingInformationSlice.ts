@@ -88,7 +88,7 @@ const billingInformationSlice = createSlice({
       })
       .addCase(fetchBillingInfo.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.billingInfo = action.payload;
+        state.billingInfo = action.payload.data || action.payload;
       })
       .addCase(fetchBillingInfo.rejected, (state, action) => {
         state.isLoading = false;
@@ -100,13 +100,14 @@ const billingInformationSlice = createSlice({
       })
       .addCase(updatePaymentMethod.fulfilled, (state, action) => {
         state.isLoading = false;
+        const paymentData = action.payload.data || action.payload;
         const existingIndex = state.billingInfo.findIndex(
-          info => info.cardNumber === action.payload.cardNumber
+          info => info._id === paymentData._id
         );
         if (existingIndex >= 0) {
-          state.billingInfo[existingIndex] = action.payload;
+          state.billingInfo[existingIndex] = paymentData;
         } else {
-          state.billingInfo.push(action.payload);
+          state.billingInfo.push(paymentData);
         }
       })
       .addCase(updatePaymentMethod.rejected, (state, action) => {

@@ -408,7 +408,7 @@ export default function BusinessVerificationPage() {
 
       {/* Main Content */}
       <div className={`flex-1 overflow-auto p-6 ${!showSidebar ? 'pt-[91px]' : ''}`}>
-        <div className="max-w-4xl mx-auto">
+        <div className="">
           <div className="space-y-6">
             {/* Status Banner */}
             <div className="flex items-center gap-4 p-4 border-b border-gray-200">

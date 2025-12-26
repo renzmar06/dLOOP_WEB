@@ -32,16 +32,90 @@ export default function SubscriptionBillingPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await response.json();
       
+      const data = await response.json();
+
       if (data.success && data.data.length > 0) {
         const business = data.data[0];
         // Check if required fields are filled
-        const isComplete = business.businessName && business.phone && business.email;
+        const isComplete =
+          business.businessName && business.phone && business.email;
         setShowSidebar(isComplete);
       }
     } catch (error) {
       console.error("Failed to check business profile:", error);
+    }
+  };
+
+  const getCurrentSubscription = () => {
+    const sortedSubs = [...subscriptions].sort(
+      (a, b) =>
+        new Date(b.selectedAt).getTime() - new Date(a.selectedAt).getTime()
+    );
+    return sortedSubs[0] || { planName: "Free" };
+  };
+
+  const canSelectPlan = (targetPlan: string) => {
+    const currentPlan = getCurrentSubscription()?.planName;
+    
+    // Prevent selecting the same plan
+    if (currentPlan === targetPlan) {
+      return false;
+    }
+
+    // Elite users cannot select any other plan (no downgrades)
+    if (currentPlan === "Elite") {
+      return false;
+    }
+
+    // Pro users can only upgrade to Elite
+    if (currentPlan === "Pro" && targetPlan !== "Elite") {
+      return false;
+    }
+
+    // Free users can select any plan
+    return true;
+  };
+
+  const redirectToStripeCheckout = async (plan: string) => {
+    try {
+      console.log("Redirecting to Stripe for plan:", plan);
+
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/stripe-checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ plan: plan.toLowerCase() }),
+      });
+
+      console.log("Response status:", res.status);
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log("Response data:", data);
+
+      if (data.url) {
+        console.log("Redirecting to:", data.url);
+        
+        // Check if coming from Change Plan and preserve the flag
+        const fromChangePlan = localStorage.getItem("fromChangePlan");
+        if (fromChangePlan === "true") {
+          // Keep the flag for after Stripe payment
+          localStorage.setItem("fromChangePlan", "true");
+        }
+        
+        window.location.href = data.url;
+      } else {
+        console.error("No URL in response:", data);
+      }
+    } catch (error) {
+      console.error("Stripe checkout failed:", error);
     }
   };
 
@@ -58,7 +132,15 @@ export default function SubscriptionBillingPage() {
           planExpiryDate: expiryDate.toISOString(),
         })
       ).unwrap();
-      router.push("/business-profile");
+
+      // Check if coming from Change Plan button
+      const fromChangePlan = localStorage.getItem("fromChangePlan");
+      if (fromChangePlan === "true") {
+        localStorage.removeItem("fromChangePlan");
+        router.push("/billing-information");
+      } else {
+        router.push("/business-profile");
+      }
     } catch (error) {
       console.error("Failed to select plan:", error);
     }
@@ -151,7 +233,11 @@ export default function SubscriptionBillingPage() {
       )}
 
       {/* Main Content */}
-      <div className={`flex-1 overflow-auto p-6 ${!showSidebar ? 'pt-[91px]' : ''}`}>
+      <div
+        className={`flex-1 overflow-auto p-6 ${
+          !showSidebar ? "pt-[91px]" : ""
+        }`}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-6 mt-12">
             {plans.map((plan) => (
@@ -200,13 +286,25 @@ export default function SubscriptionBillingPage() {
                 </ul>
 
                 <button
-                  onClick={() =>
-                    handlePlanSelect({ name: plan.name, price: plan.price })
-                  }
-                  disabled={isLoading}
+                  onClick={() => {
+                    if (!canSelectPlan(plan.name)) {
+                      return; // Prevent selection if not allowed
+                    }
+
+                    if (plan.name === "Pro" || plan.name === "Elite") {
+                      redirectToStripeCheckout(plan.name);
+                    } else if (plan.name === "Free") {
+                      handlePlanSelect({ name: plan.name, price: plan.price });
+                    }
+                  }}
+                  disabled={isLoading || !canSelectPlan(plan.name)}
                   className={`w-full py-3 rounded-lg font-semibold transition ${
                     plan.buttonStyle
-                  } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  } ${
+                    isLoading || !canSelectPlan(plan.name)
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
                 >
                   {isLoading ? "Processing..." : plan.buttonText}
                 </button>

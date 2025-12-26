@@ -13,7 +13,8 @@ import {
   Recycle,
   LocateIcon,
   CreditCard,
-  LogOut
+  LogOut,
+  TrendingUp
 } from 'lucide-react';
 
 interface MenuItem {
@@ -73,6 +74,12 @@ export default function Sidebar() {
       icon: LocateIcon,
       label: 'Locations',
       href: '/locations'
+    },
+    {
+      id: 'boost-advertising',
+      icon: TrendingUp,
+      label: 'Boost & Advertising',
+      href: '/boost-advertising'
     },
     {
       id: 'SubscriptionBilling',

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import Image from "next/image";
 import { AppDispatch, RootState } from "@/redux/store";
 import {
   fetchBusinesses,
@@ -34,6 +35,7 @@ import {
 import PreviewModal from "@/components/PreviewModal";
 import Layout from "@/components/Layout";
 import Material from '@/components/Material/Material';
+import LocationsDashboard from "@/components/locations/LocationsDashboard";
 
 const Input = ({
   label,
@@ -505,7 +507,7 @@ export default function BusinessProfile() {
   return (
     <Layout>
       {/* Fixed Header */}
-      <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 min-h-[75px] -m-6 mb-6">
+      <div className="sticky top-0 z-10 bg-white flex items-center justify-between p-4 border-b border-gray-200 mb-6">
         <div className="flex items-center space-x-2">
           <div>
             <h1 className="text-lg font-bold text-gray-900">
@@ -538,7 +540,7 @@ export default function BusinessProfile() {
       </div>
       <div className="min-h-screen bg-gray-50">
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-8 py-10 grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="max-w-7xl mx-auto py-10 grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Left Side - Form */}
           <div className="col-span-1 xl:col-span-2 bg-white rounded-lg shadow-sm">
             {/* Tabs */}
@@ -547,6 +549,7 @@ export default function BusinessProfile() {
                 {[
                   ["business-info", "Business Information"],
                   ["social-settings", "Social Media & Settings"],
+                  ["locations", "Business Locations"],
                   ["working-hours", "Working Hours"],
                   ["material", "Material"],
                 ].map(([id, label]) => (
@@ -577,9 +580,11 @@ export default function BusinessProfile() {
                     <div className="flex justify-center">
                       <div className="relative w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 cursor-pointer hover:bg-gray-100">
                         {form.logo ? (
-                          <img
+                          <Image
                             src={form.logo}
                             alt="Logo"
+                            width={96}
+                            height={96}
                             className="w-full h-full object-cover rounded-lg"
                           />
                         ) : (
@@ -711,6 +716,8 @@ export default function BusinessProfile() {
                   </div>
                 </div>
               )}
+
+              {activeTab === "locations" && <LocationsDashboard />}
 
               {activeTab === "working-hours" && (
                 <div className="space-y-6 max-w-2xl">
@@ -873,8 +880,11 @@ export default function BusinessProfile() {
                       <div className="relative h-44 bg-gradient-to-r from-yellow-400 to-yellow-600">
                         <div className="absolute -bottom-8 left-5 w-20 h-20 rounded-3xl bg-white shadow-lg border overflow-hidden">
                           {form.logo && (
-                            <img
+                            <Image
                               src={form.logo}
+                              alt="Business Logo"
+                              width={80}
+                              height={80}
                               className="w-full h-full object-cover"
                             />
                           )}

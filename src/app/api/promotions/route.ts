@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Promotion created successfully',
       data: promotion
-    }, { status: 201 });
+    }, { status: 200 });
 
   } catch (error) {
     console.error('Create promotion error:', error);

@@ -6,6 +6,8 @@ import businessReducer from './slices/businessSlice';
 import billingInformationReducer from'./slices/billingInformationSlice';
 import SubscriptionBillingReducer from './slices/subscriptionBillingSlice';
 import promotionsReducer from '../redux/slices/promotionsSlice';
+import campaignDraftReducer from './slices/campaignDraftSlice';
+import campaignsReducer from './slices/campaignsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +18,8 @@ export const store = configureStore({
     billingInformation: billingInformationReducer,
     subscriptionBilling: SubscriptionBillingReducer,
     promotions: promotionsReducer,
+    campaignDraft: campaignDraftReducer,
+    campaigns: campaignsReducer,
   },
 });
 

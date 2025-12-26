@@ -67,7 +67,7 @@ const subscriptionBillingSlice = createSlice({
       })
       .addCase(fetchSubscriptions.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.subscriptions = action.payload;
+        state.subscriptions = action.payload.data || action.payload;
       })
       .addCase(fetchSubscriptions.rejected, (state, action) => {
         state.isLoading = false;
@@ -79,13 +79,14 @@ const subscriptionBillingSlice = createSlice({
       })
       .addCase(selectPlan.fulfilled, (state, action) => {
         state.isLoading = false;
+        const subscriptionData = action.payload.data || action.payload;
         const existingIndex = state.subscriptions.findIndex(
-          sub => sub.planName === action.payload.planName
+          sub => sub.planName === subscriptionData.planName
         );
         if (existingIndex >= 0) {
-          state.subscriptions[existingIndex] = action.payload;
+          state.subscriptions[existingIndex] = subscriptionData;
         } else {
-          state.subscriptions.push(action.payload);
+          state.subscriptions.push(subscriptionData);
         }
       })
       .addCase(selectPlan.rejected, (state, action) => {

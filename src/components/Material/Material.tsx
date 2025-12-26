@@ -102,10 +102,21 @@ export default function MaterialsAcceptedMain() {
   return (
     <>
       <div className="flex flex-col h-full">
-        {/* ===== FIXED HEADER (SAME AS BUSINESS VERIFICATION) ===== */}
-        <div className="">
-          <div className="flex items-center gap-3">
-            {/* <Button
+    
+    {/* ===== FIXED HEADER (SAME AS BUSINESS VERIFICATION) ===== */}
+    <div className="flex items-center justify-between p-2 border-b border-gray-200 min-h-[75px] -mt-6">
+
+      <div className="flex items-center gap-3">
+        <Button
+          variant="outline"
+          className="flex bg-yellow-500 hover:bg-yellow-600 text-white hover:text-white items-center gap-2"
+          onClick={() => setShowAddModal(true)}
+        >
+          <Plus className="w-4 h-4" />
+          Add Custom Material
+        </Button>
+
+        {/* <Button
           variant="outline"
           className="flex items-center gap-2"
         >

@@ -150,7 +150,7 @@ export default function PaymentModal({
             )}
             <div className="pt-2 border-t border-gray-300 flex justify-between">
               <span className="font-bold text-gray-900">Total</span>
-              <span className="font-bold text-xl text-teal-600">${totalPrice.toFixed(2)}</span>
+              <span className="font-bold text-xl text-yellow-600">${totalPrice.toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -168,7 +168,7 @@ export default function PaymentModal({
                 onClick={() => setPaymentMethod("card")}
                 className={`p-4 border-2 rounded-lg flex items-center justify-center gap-2 transition ${
                   paymentMethod === "card"
-                    ? "border-teal-500 bg-teal-50"
+                    ? "border-yellow-500 bg-yellow-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
               >
@@ -180,7 +180,7 @@ export default function PaymentModal({
                 onClick={() => setPaymentMethod("paypal")}
                 className={`p-4 border-2 rounded-lg flex items-center justify-center gap-2 transition ${
                   paymentMethod === "paypal"
-                    ? "border-teal-500 bg-teal-50"
+                    ? "border-yellow-500 bg-yellow-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
               >
@@ -202,7 +202,7 @@ export default function PaymentModal({
                   value={formData.cardNumber}
                   onChange={handleInputChange}
                   placeholder="1234 5678 9012 3456"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                     errors.cardNumber ? "border-red-500" : "border-gray-300"
                   }`}
                   disabled={isProcessing}
@@ -225,7 +225,7 @@ export default function PaymentModal({
                   value={formData.cardName}
                   onChange={handleInputChange}
                   placeholder="John Doe"
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                     errors.cardName ? "border-red-500" : "border-gray-300"
                   }`}
                   disabled={isProcessing}
@@ -249,7 +249,7 @@ export default function PaymentModal({
                     value={formData.expiryDate}
                     onChange={handleInputChange}
                     placeholder="MM/YY"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                       errors.expiryDate ? "border-red-500" : "border-gray-300"
                     }`}
                     disabled={isProcessing}
@@ -271,7 +271,7 @@ export default function PaymentModal({
                     value={formData.cvv}
                     onChange={handleInputChange}
                     placeholder="123"
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                       errors.cvv ? "border-red-500" : "border-gray-300"
                     }`}
                     disabled={isProcessing}
@@ -298,7 +298,7 @@ export default function PaymentModal({
               value={formData.email}
               onChange={handleInputChange}
               placeholder="john@example.com"
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                 errors.email ? "border-red-500" : "border-gray-300"
               }`}
               disabled={isProcessing}
@@ -326,7 +326,7 @@ export default function PaymentModal({
           <button
             type="submit"
             disabled={isProcessing}
-            className="w-full bg-teal-500 text-white py-4 rounded-lg font-semibold hover:bg-teal-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-yellow-500 text-white py-4 rounded-lg font-semibold hover:bg-yellow-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isProcessing ? (
               <>
