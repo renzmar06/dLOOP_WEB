@@ -56,12 +56,12 @@ export default function Sidebar() {
       label: 'Business Profile',
       href: '/business-profile',
     },
-    // {
-    //   id: 'business-verification',
-    //   icon: Shield,
-    //   label: 'Business Verification',
-    //   href: '/business-verification',
-    // },
+    {
+      id: 'business-verification',
+      icon: Shield,
+      label: 'Business Verification',
+      href: '/business-verification',
+    },
     // {
     //   id: 'materials-accepted',
     //   icon: Recycle,
@@ -77,8 +77,8 @@ export default function Sidebar() {
     {
       id: 'SubscriptionBilling',
       icon: CreditCard,
-      label: 'Subscription',
-      href: '/SubscriptionBilling'
+      label: 'Subscription & Billing',
+      href: '/subscription-billing'
     },
     {
       id: 'BillingInformation',
@@ -92,6 +92,7 @@ export default function Sidebar() {
       label: 'coupan & promotion',
       href: '/coupan&promotion'
     }
+    
   ];  
 
   return (
