@@ -31,6 +31,18 @@ const SubscriptionBillingSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  stripeSessionId: {
+    type: String,
+    required: false,
+  },
+  stripeCustomerId: {
+    type: String,
+    required: false,
+  },
+  stripeSubscriptionId: {
+    type: String,
+    required: false,
+  },
 });
 
 // Clear existing model to force refresh
